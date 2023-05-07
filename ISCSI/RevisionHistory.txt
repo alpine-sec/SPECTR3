@@ -1,0 +1,148 @@
+Revision History:
+-----------------
+1.0.0 - Initial release.
+
+1.0.1 - Support for multiple connections to the iSCSI server (one connection per session).
+        Disabled unnecessary disk read operations when logging is turned off.
+
+1.0.2 - Write operation to disk is now performed only when the complete SCSI command data has been received.
+        Support for iSCSI command queue.
+
+1.0.6 - Fixed protocol related bugs.
+        Properly handle implicit logout.
+        Improved logging.
+
+1.0.7 - Added support for the 'Request Sense' command.
+
+1.0.8 - Nagle's algorithm has been disabled.
+        Unsupported SCSI CDBs are now properly rejected.
+
+1.0.9 - Minor bugfix.
+
+1.1.0 - Minor bugfix.
+
+1.1.1 - Read requests outside LBA range are now returning the proper SCSI status.
+
+1.1.2 - Improved support for multiple connections to the iSCSI server.
+
+1.1.3 - Bugfix: CRC error was reported on all I/O errors.
+
+1.1.4 - Increased receive buffer size to 128KB.
+        Added timestamp to log.
+
+1.1.5 - The log file is now written directly to disk, without passing through the file system cache.
+
+1.1.7 - Bugfix: The NOP-Out response did not have the 'Initiator Task Tag' field set.
+
+1.1.8 - Added support for the Reserve6, Release6 SCSI commands.
+        Added support for the Control mode page (0x0A) PageCode for the ModeSense6 SCSI command.
+
+1.1.9 - Added support for the Read6, Write6 SCSI commands.
+        Added support for the Block Limits (0xB0), Block Device Characteristics (0xB1) VPD pages.
+        Unsupported SCSI commands are now properly reported to the initiator.
+
+1.2.0 - Minor improvements.
+
+1.2.1 - Minor improvements.
+
+1.2.2 - Protocol related bugfixes and improvements.
+        Added iSCSI Client implementation.
+
+1.2.3 - Bugfix: login requests starting from stage 1 are now properly handled.
+        Bugfix: Unsupported SCSI commands are now properly handled.
+
+1.2.4 - Improved separation between the iSCSI and SCSI layers.
+
+1.2.5 - Improved compliance with the iSCSI and SCSI protocols.
+
+1.2.6 - Minor improvements.
+
+1.2.7 - The iSCSI Client did not report the correct disk capacity.
+
+1.2.8 - Reject improper commands during the login phase.
+
+1.2.9 - Reject improper commands before login is complete.
+
+1.3.0 - Bugfix: Invalid ReadCapacity16 command response was returend.
+        Bugfix: Incorrect ResidualCount value was returned.
+
+1.3.1 - Bugfix: iSCSI Client did not report the correct capacity when >4GB.
+        Improved iSCSI Client performance.
+
+1.3.2 - Minor improvements.
+
+1.3.3 - Bugfix: The iSCSI server now return the TargetPortalGroupTag key with the first Login response.
+        Bugfix: Login request during full feature phase is now properly rejected.
+        Bugfix: Any PDU other than Login request is now properly rejected during the login phase once the login phase has started.
+        Minor code cleanup and improvements.
+
+1.3.4 - Bugfix: SCSI commands will now be executed in the correct order.
+
+1.3.5 - Bugfix: iSCSI server did not increment StatSN for LoginResponsePDU / TextResponsePDU / RejectPDU.
+        The iSCSI server will now terminate a connection only after all running SCSI commands sent using that connection have been completed.
+        Minor Code cleanup.
+
+1.3.6 - API Improvements: You can now subscribe to receive iSCSIServer and/or VirtualSCSITarget log entries.
+        API Improvements: You can now provide your own implementation of SCSITarget to the iSCSI server.
+        API Improvements: You can now set identification information for each LUN.
+        API Improvements: Added authorization API to ISCSITarget.
+        Improved connection management logic.
+
+1.3.7 - Bugfix: Read/Write log entries now properly include the LUN.
+        Bugfix: SCSI Data-In PDUs were sent without ExpCmdSN / MaxCmdSN being set.
+        Each connection now use a dedicaded thread for send operations.
+        SCSITarget now implements a queue for async command execution and use a dedicated thread.
+        
+1.3.8 - Improvements in VHD creation mechanism.
+        Bugfix: incorrect server behavior when a single R2T was answered with a sequence of Data-Out PDUs.
+        Bugfix: iSCSI server incorrectly assumed unnegotiated connection parameters.
+        API Improvements: More control over the iSCSI server TCP listening port, including IPv6 support.
+
+1.3.9 - TSIH / Target Transfer Tag are now allocated in a thread-safe way.
+        Improved logging.
+        API: Ability to add iSCSI targets while the server is running.
+        Support for login requests with the Continue bit set to 1.
+        
+1.4.0 - Added support for MaxOutstandingR2T > 1.
+        Added support for InitialR2T = False.
+        Improved session management logic.
+        Ability to remove (unused) iSCSI targets while the server is running.
+        Improved login logic.
+        Added dead peer detection mechanism.
+        API: Listener endpoint should now be passed to the Start method.
+        API: Added OnSessionTermination event to ISCSITarget
+        API: Added ResetTarget method to disconnect any connected initators.
+
+1.4.1 - Bugfix: iSCSI Server did not start (when calling Start) after a SocketException.
+        Write performance has been improved by avoiding unnecessary memory copy operation when reading iSCSI PDU.
+        API: Added ISCSITarget.OnTextRequest event to handle vendor specific text requests.
+        API: Added SCSITarget.OnUnitSerialNumberInquiry event.
+        API: Added SCSITargetInterface to improve extensibility.
+
+1.4.2 - Write performance has been improved (due to improved connection buffer implementation).
+        Trace logging is now disabled in Release build.
+
+1.4.3 - Bugfix: Wrong sender parameter was dispatched to ISCSITarget inquiry event handlers.
+
+1.4.4 - ISCSITarget: Event notification related bugfixes.
+
+1.4.5 - Minor logging improvement.
+        Added additional SCSI opcodes.
+        Added PeripheralDeviceType enum.
+        Added ModeParameterHeader10 / LongLBAModeParameterBlockDescriptor.
+
+1.4.6 - LUNStructure: minor updates.
+        Added SPTI implementation (Credit to Alex Bowden for leading the effort).
+        Bugfix: Advertise ErrorRecoveryLevel in discovery session login response.
+
+1.4.7 - Bugfix: StatSN was not advanced after NOP-In response.
+
+1.4.8 - Bugfix: Incorrect processing of SCSIDataOutPDU in some cases.
+        Minor logging and documentation improvements.
+
+1.4.9 - Corrected handling of unsolicited Data Out PDU when InitialR2T=No.
+
+1.5.0 - Corrected logging typo.
+
+1.5.2 - ISCSIClient: Fixed a bug related to localhost communication.
+        ISCSIServer: Corrected documentation.
