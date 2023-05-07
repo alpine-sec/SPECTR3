@@ -124,6 +124,17 @@ namespace SPECTR3
                         }
                     }
                 }
+                // Get the interface ip address for wifi conections if ethernet is not available
+                if (string.IsNullOrEmpty(ipaddress) && ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && ni.OperationalStatus == OperationalStatus.Up)
+                {
+                    foreach (GatewayIPAddressInformation gipi in ni.GetIPProperties().GatewayAddresses)
+                    {
+                        if (gipi.Address.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            ipaddress = ni.GetIPProperties().UnicastAddresses[1].Address.ToString();
+                        }
+                    }
+                }
             }
             return ipaddress;
         }
@@ -341,18 +352,29 @@ namespace SPECTR3
             }
 
             //Initiatize values
-
             ISCSITarget m_target;
             List<Disk> m_disks = new List<Disk>();
             string txtTargetIQN;
 
             //Initialize Network parameters
+            IPAddress serverAddress;
+            String serverIP = GetLocalIPAddress(); ;
 
-            IPAddress serverAddress = IPAddress.Parse(GetLocalIPAddress());
             if (!string.IsNullOrEmpty(thisbind))
             {
                 // Change the Permited IP Address global value
                 serverAddress = IPAddress.Parse(thisbind);
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(serverIP))
+                {
+                    serverAddress = IPAddress.Any;
+                }
+                else
+                {
+                    serverAddress = IPAddress.Parse(serverIP);
+                }
             }
 
             IPAddress permitedAddress = IPAddress.Any;
