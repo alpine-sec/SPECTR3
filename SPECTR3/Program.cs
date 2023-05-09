@@ -108,6 +108,34 @@ namespace SPECTR3
             }
         }
 
+        // Get random phrases from a messages list
+        public static string GetRandomMessage()
+        {
+            string[] messages = new string[] { "What's the problem with having meetings at 3 a.m.?",
+                                               "I invented that 10 years ago",
+                                               "Furest already does",
+                                               "Trinito already does",
+                                               "The infrastructure never falls off",
+                                               "Cool EVERYTHING",
+                                               "My twitter profile on the front page!",
+                                               "That's not how we do things here",
+                                               "Automate, Automate, Automate!",
+                                               "Real World",
+                                               "Not Trivial",
+                                               "We have to show our chest",
+                                               "This is a game changer",
+                                               "This was born after a brain storm meeting at 3 am",
+                                               "Is this Cloud free?",
+                                               "This tool was designed 10 years ago",
+                                               "This is the result of years of automation",
+                                               "I'll take this in one night",
+                                               "It is just a IF",
+                                               "We need a mind blowing presentation "};
+            Random rnd = new Random();
+            int index = rnd.Next(messages.Length);
+            return messages[index];
+        }
+
         //Get the interface ip address with gateway and not localhost
         public static string GetLocalIPAddress()
         {
@@ -161,6 +189,7 @@ namespace SPECTR3
             }
             return valid;
         }
+
 
         static String BytesToString(long byteCount)
         {
@@ -258,6 +287,7 @@ namespace SPECTR3
         static int Main(string[] args)
         {
             bool list = false;
+            bool thisegg = false;
             string thisport = string.Empty;
             string thisip = string.Empty;
             string thisbind = string.Empty;
@@ -342,6 +372,10 @@ namespace SPECTR3
                         Console.WriteLine("  - Disk Index value is mandatory");
                         return 1;
                     }
+                }
+                if (arg == "-o")
+                {
+                    thisegg = true;
                 }
             }
 
@@ -454,6 +488,15 @@ namespace SPECTR3
             try
             {
                 m_server.Start(endpoint);
+                Console.WriteLine();
+                //Write GetRandom message in console in italics
+                if (thisegg)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("  - Funny MOTD: " + GetRandomMessage());
+                    Console.WriteLine();
+                }
+
                 Console.WriteLine("  - SPECTR3 Server running at " + serverAddress + ":" + port);
                 Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
                 Console.WriteLine("  - Press any key to stop sharing and close server ...  ");
