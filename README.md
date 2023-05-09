@@ -38,6 +38,8 @@ And of course... just for fun!
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+[**DOWNLOAD EXECUTABLE**](https://github.com/alpine-sec/SPECTR3/releases/latest)
+
 Copy portable executable of **Spectr3** to the endpoint where you want to perform remote acquisition, triage or forensic analysis, **remember that you will need administrator permissions to access the block devices.**
 
 ### Command Line Options
