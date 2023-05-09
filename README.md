@@ -105,7 +105,26 @@ In Windows Investigator machines you can use the windows native tool iSCSI Initi
 
 ![image](https://user-images.githubusercontent.com/143736/236651589-1f187867-5230-4668-bf29-af5f414c049a.png)
 
-**NOTE**: if you simply want to do a quick view without the annoying permissions inherited from NTFS, you can use Double Commander (https://github.com/doublecmd/doublecmd) for example)
+```
+C:\kape> .\kape.exe --tsource G: --tdest C:\Triages\RegistryFiles --target RegistryHives
+KAPE version 1.3.0.2, Author: Eric Zimmerman, Contact: https://www.kroll.com/kape (kape@kroll.com)
+
+KAPE directory: C:\kape
+Command line:   --tsource G: --tdest RegistryFiles --target RegistryHives
+
+System info: Machine name: STARK, 64-bit: True, User: KERO99 OS: Windows10 (10.0.22621)
+
+Using Target operations
+  Creating target destination directory C:\Triages\RegistryFiles
+Found 2 targets. Expanding targets to file list...
+Found 30 files in 0.173 seconds. Beginning copy...
+
+Copied 30 out of 30 files in 6.5936 seconds. See C:\Triages\RegistryFiles\2023-05-09T15_06_21_5242679_CopyLog.csv for copy details
+
+Total execution time: 6.5953 seconds
+```
+
+**NOTE**: if you simply want to do a quick view without the annoying permissions inherited from NTFS, you can use Double Commander (https://github.com/doublecmd/doublecmd) or Powershell as administrator for example
 
 5. Disconnect when finish
 
