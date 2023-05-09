@@ -93,8 +93,6 @@ In Windows Investigator machines you can use the windows native tool iSCSI Initi
 
 ![image](https://user-images.githubusercontent.com/143736/236651365-441f5394-b99f-4148-8e3a-f82d7c0a86c6.png)
 
-
-
 3. Connect to target in "Targets" tab:
 
 ![image](https://user-images.githubusercontent.com/143736/236651418-2dc784ae-5ccc-4608-8830-cf3ec3d98f39.png)
@@ -106,6 +104,27 @@ In Windows Investigator machines you can use the windows native tool iSCSI Initi
 ![image](https://user-images.githubusercontent.com/143736/236651568-e81c4c1a-62fd-45ee-8858-377c5a33ae7d.png)
 
 ![image](https://user-images.githubusercontent.com/143736/236651589-1f187867-5230-4668-bf29-af5f414c049a.png)
+
+```
+C:\kape> .\kape.exe --tsource G: --tdest C:\Triages\RegistryFiles --target RegistryHives
+KAPE version 1.3.0.2, Author: Eric Zimmerman, Contact: https://www.kroll.com/kape (kape@kroll.com)
+
+KAPE directory: C:\kape
+Command line:   --tsource G: --tdest RegistryFiles --target RegistryHives
+
+System info: Machine name: STARK, 64-bit: True, User: KERO99 OS: Windows10 (10.0.22621)
+
+Using Target operations
+  Creating target destination directory C:\Triages\RegistryFiles
+Found 2 targets. Expanding targets to file list...
+Found 30 files in 0.173 seconds. Beginning copy...
+
+Copied 30 out of 30 files in 6.5936 seconds. See C:\Triages\RegistryFiles\2023-05-09T15_06_21_5242679_CopyLog.csv for copy details
+
+Total execution time: 6.5953 seconds
+```
+
+**NOTE**: if you simply want to do a quick view without the annoying permissions inherited from NTFS, you can use Double Commander (https://github.com/doublecmd/doublecmd) or Powershell as administrator for example
 
 5. Disconnect when finish
 
