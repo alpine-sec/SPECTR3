@@ -93,15 +93,13 @@ In Windows Investigator machines you can use the windows native tool iSCSI Initi
 
 ![image](https://user-images.githubusercontent.com/143736/236651365-441f5394-b99f-4148-8e3a-f82d7c0a86c6.png)
 
-
-
 3. Connect to target in "Targets" tab:
 
 ![image](https://user-images.githubusercontent.com/143736/236651418-2dc784ae-5ccc-4608-8830-cf3ec3d98f39.png)
 
 ![image](https://user-images.githubusercontent.com/143736/236651459-7a7d2339-72d3-4a3e-b3ab-55cc1e08ecaa.png)
 
-4. Acquire or analyze with your favorite tool:
+4. Acquire or analyze with your favorite tool. **NOTE**: if you simply want to do a quick view without the annoying permissions inherited from NTFS, you can use Double Commander (https://github.com/doublecmd/doublecmd) for example:
 
 ![image](https://user-images.githubusercontent.com/143736/236651568-e81c4c1a-62fd-45ee-8858-377c5a33ae7d.png)
 
