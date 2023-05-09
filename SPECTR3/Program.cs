@@ -489,10 +489,8 @@ namespace SPECTR3
             {
                 m_server.Start(endpoint);
                 Console.WriteLine();
-                //Write GetRandom message in console in italics
                 if (thisegg)
                 {
-                    Console.WriteLine();
                     Console.WriteLine("  - Funny MOTD: " + GetRandomMessage());
                     Console.WriteLine();
                 }
