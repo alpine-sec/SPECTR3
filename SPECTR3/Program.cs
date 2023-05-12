@@ -28,6 +28,7 @@ using System.Security.Principal;
 using Renci.SshNet;
 using Renci.SshNet.Common;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace SPECTR3
 {
@@ -281,7 +282,7 @@ namespace SPECTR3
 
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.4 - Remote forensics tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.4.1 - Remote forensics tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
@@ -330,6 +331,9 @@ namespace SPECTR3
 
             List<string> volstr = new List<string>();
             List<string> dskstr = new List<string>();
+            List<string> validargs = new List<string>()
+                 { "--list", "--port", "--permitip", "--bindip", "--volume", "--disk", "--help", "--sshuser",
+                   "--sshpass", "--sshhost", "--sshport", "-l", "-p", "-i", "-b", "-h", "-v", "-d"};
 
             if (!SecurityHelper.IsAdministrator())
             {
@@ -339,7 +343,14 @@ namespace SPECTR3
 
             for (int i = 0; i < args.Length; i++)
             {
+                if (!validargs.Contains(args[i]) && args[i].StartsWith("-"))
+                {
+                    Console.WriteLine(" - Invalid argument: " + args[i]);
+                    return 1;
+                }
+
                 var arg = args[i].ToLower();
+
                 if (arg == "--list"|| arg == "-l")
                 {
                     list = true;
@@ -356,7 +367,6 @@ namespace SPECTR3
                         Console.WriteLine(vol);
                     }
                     return 0;
-
                 }
 
                 if (arg == "--help" || arg == "-h")
@@ -389,6 +399,7 @@ namespace SPECTR3
                         port = Conversion.ToInt32(thisport);
                     }
                 }
+
                 if (arg == "--volume" || arg == "-v")
                 {
                     thisvolume = args[i + 1];
@@ -398,6 +409,7 @@ namespace SPECTR3
                         return 1;
                     }
                 }
+
                 if (arg == "--disk" || arg == "-d")
                 {
                     thisdisk = args[i + 1];
@@ -407,22 +419,27 @@ namespace SPECTR3
                         return 1;
                     }
                 }
+
                 if (arg == "-o")
                 {
                     thisegg = true;
                 }
+
                 if (arg == "--sshuser")
                 {
                     sshuser = args[i + 1];
                 }
+
                 if (arg == "--sshpass")
                 {
                     sshpass = args[i + 1];
                 }
+
                 if (arg == "--sshhost")
                 {
                     sshhost = args[i + 1];
                 }
+
                 if (arg == "--sshport")
                 {
                     thissshport = args[i + 1];
@@ -438,6 +455,7 @@ namespace SPECTR3
                 PrintHelp();
                 return 1;
             }
+
 
             //Initiatize values
             ISCSITarget m_target;
@@ -457,15 +475,36 @@ namespace SPECTR3
                 if (string.IsNullOrEmpty(sshuser))
                 {
                     //get sshuser by prompt
-                    Console.WriteLine("  - SSH Username:");
+                    Console.Write("  - SSH Username: ");
                     sshuser = Console.ReadLine();
                 }
 
                 if (string.IsNullOrEmpty(sshpass))
                 {
                     //get sshuser by prompt
-                    Console.WriteLine("  - SSH Password:");
-                    sshpass = Console.ReadLine();
+                    Console.Write("  - SSH Password: ");
+                    ConsoleKeyInfo keyInfo;
+                    do
+                    {
+                        keyInfo = Console.ReadKey(true);
+                        // Skip if Backspace or Enter is Pressed
+                        if (keyInfo.Key != ConsoleKey.Backspace && keyInfo.Key != ConsoleKey.Enter)
+                        {
+                            sshpass += keyInfo.KeyChar;
+                            Console.Write("*");
+                        }
+                        else
+                        {
+                            if (keyInfo.Key == ConsoleKey.Backspace && sshpass.Length > 0)
+                            {
+                                // Remove last character if Backspace is Pressed
+                                sshpass = sshpass.Substring(0, (sshpass.Length - 1));
+                                Console.Write("\b \b");
+                            }
+                        }
+                    }
+                    // Stops Getting Password Once Enter is Pressed
+                    while (keyInfo.Key != ConsoleKey.Enter);
                 }
                 else
                 {
@@ -473,7 +512,6 @@ namespace SPECTR3
                     if (IsBase64String(sshpass))
                     {
                         sshpass = Base64Decode(sshpass).TrimEnd('\r', '\n'); ;
-                        Console.WriteLine("DEBUG |{0}|",sshpass);
                     }
                     else
                     {
@@ -626,16 +664,15 @@ namespace SPECTR3
                     fwdport.Start();
                     Console.WriteLine("    + SSH Tunnel successfully connected to " + sshhost + ":" + sshport);
                 }
-                Console.WriteLine("  - Press any key to disconnect ssh tunnel ...  ");
+                Console.Write("  - Press any key to disconnect ssh tunnel ...  ");
                 Console.ReadLine();
                 fwdport.Stop();
                 sshclient.Disconnect();
                 Console.WriteLine("    + SSH Tunnel disconnected");
-                Console.WriteLine();
             }
 
             // Does not close the console window
-            Console.WriteLine("  - Press any key to stop sharing and close server ...  ");
+            Console.Write("  - Press any key to stop sharing and close server ...  ");
             Console.ReadLine();
             m_server.Stop();
             Console.WriteLine("    + Server stopped. Bye");
