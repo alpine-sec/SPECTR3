@@ -438,6 +438,11 @@ namespace SPECTR3
                 if (arg == "--sshhost")
                 {
                     sshhost = args[i + 1];
+                    if (string.IsNullOrEmpty(sshhost))
+                    {
+                        Console.WriteLine("  - SSH Host is empty");
+                        return 1;
+                    }
                 }
 
                 if (arg == "--sshport")
@@ -467,7 +472,7 @@ namespace SPECTR3
             IPAddress serverAddress;
             String serverIP;
 
-            if (sshhost != null)
+            if (!string.IsNullOrEmpty(sshhost))
             {
                 serverAddress = IPAddress.Loopback;
                 permitedAddress = IPAddress.Loopback;
@@ -637,7 +642,7 @@ namespace SPECTR3
                 return 1;
             }
 
-            if (sshhost != null)
+            if (!string.IsNullOrEmpty(sshhost))
             {
                 ConnectionInfo ConnNfo = new ConnectionInfo(sshhost, sshport, sshuser, new AuthenticationMethod[] { new PasswordAuthenticationMethod(sshuser, sshpass) });
                 SshClient sshclient = new SshClient(ConnNfo);
