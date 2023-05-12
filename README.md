@@ -44,7 +44,7 @@ Copy portable executable of **Spectr3** to the endpoint where you want to perfor
 
 ### Command Line Options
 ```
-SPECTR3 v0.3 - Remote forensics tool by Alpine Security
+SPECTR3 v0.4.1 - Remote forensics tool by Alpine Security
 Usage: SPECTR3.exe [options]
 Options:
   -l, --list
@@ -61,6 +61,14 @@ Options:
     Set the disk to share.
   -h, --help
     Print this help message.
+  --sshuser
+    Set the ssh user to connect.
+  --sshpass
+    Set the ssh password to connect in BASE64. NOTE: if the password is empty, the prompt will ask for the password, in this case it does not need to be entered in BASE64.
+  --sshhost
+    Set the ssh host to connect.
+  --sshport
+    Set the ssh port to connect. Default: 22
 ```
 
 ### List devices of the endpoint
@@ -166,12 +174,31 @@ C:\Users\dev\Desktop>SPECTR3.exe -d 0 -i 10.10.10.2
     + Access Permited from: 10.10.10.2
   - Press any key to stop sharing and close server ...
 ```
+
+### Encrypt connection over reverse SSH
+
+1. Use --sshhost options. Optionally you can add sshuser, sshpass and sshport via arguments. If you want set password via argument, you need convert it to base64 (perfect for remote execution of SPECTR3):
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/143736/b492abf5-b996-475a-bbaf-aa34b7907980)
+
+2. You can see the remote login and the iSCSI port in the remote machine:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/143736/373c3b77-5616-4abc-a3de-254adc1d2c33)
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/143736/5bd275f3-50bc-49e0-8284-289e262ce395)
+
+3. Show target in localhost and exported port:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/143736/a75606e6-c5c1-4a9d-8265-64667d102f61)
+
+4. Connect target as usual.
+
 <!-- ROADMAP -->
 ## Roadmap
 
 - [ ] Add option to share all drives in different targets
 - [ ] Add option to install as a service
-- [ ] Tunnelized and encrypted connections
+- [X] Tunnelized and encrypted connections
 - [ ] Multiplatform easy client
 - [ ] Others cool things...
 
