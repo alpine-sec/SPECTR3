@@ -14,6 +14,7 @@
 
 
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
@@ -24,6 +25,9 @@ using DiskAccessLibrary.Win32;
 using Utilities;
 using ISCSI.Server;
 using System.Security.Principal;
+using Renci.SshNet;
+using Renci.SshNet.Common;
+using System.Text.RegularExpressions;
 
 namespace SPECTR3
 {
@@ -108,6 +112,19 @@ namespace SPECTR3
             }
         }
 
+        public static bool IsBase64String(String s)
+        {
+            s = s.Trim();
+            return (s.Length % 4 == 0) && Regex.IsMatch(s, @"^[a-zA-Z0-9\+/]*={0,3}$", RegexOptions.None);
+
+        }
+
+        public static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            return Encoding.UTF8.GetString(base64EncodedBytes);
+        }
+
         // Get random phrases from a messages list
         public static string GetRandomMessage()
         {
@@ -189,7 +206,6 @@ namespace SPECTR3
             }
             return valid;
         }
-
 
         static String BytesToString(long byteCount)
         {
@@ -282,18 +298,36 @@ namespace SPECTR3
             Console.WriteLine("    Set the disk to share.");
             Console.WriteLine("  -h, --help");
             Console.WriteLine("    Print this help message.");
+            Console.WriteLine("  --sshuser");
+            Console.WriteLine("    Set the ssh user to connect.");
+            Console.WriteLine("  --sshpass");
+            Console.WriteLine("    Set the ssh password to connect in BASE64. NOTE: if the password is empty, the prompt will ask for the password, in this case it does not need to be entered in BASE64.");
+            Console.WriteLine("  --sshhost");
+            Console.WriteLine("    Set the ssh host to connect.");
+            Console.WriteLine("  --sshport");
+            Console.WriteLine("    Set the ssh port to connect. Default: 22");
+                
         }
 
         static int Main(string[] args)
         {
             bool list = false;
             bool thisegg = false;
+
             string thisport = string.Empty;
             string thisip = string.Empty;
             string thisbind = string.Empty;
             string thisvolume = string.Empty;
             string thisdisk = string.Empty;
+
+            string sshuser = string.Empty;
+            string sshpass = string.Empty;
+            string sshhost = string.Empty;
+            string thissshport = string.Empty;
+
             int port = 3262;
+            int sshport = 22;
+
             List<string> volstr = new List<string>();
             List<string> dskstr = new List<string>();
 
@@ -377,6 +411,26 @@ namespace SPECTR3
                 {
                     thisegg = true;
                 }
+                if (arg == "--sshuser")
+                {
+                    sshuser = args[i + 1];
+                }
+                if (arg == "--sshpass")
+                {
+                    sshpass = args[i + 1];
+                }
+                if (arg == "--sshhost")
+                {
+                    sshhost = args[i + 1];
+                }
+                if (arg == "--sshport")
+                {
+                    thissshport = args[i + 1];
+                    if (!string.IsNullOrEmpty(thissshport))
+                    {
+                        sshport = Conversion.ToInt32(thissshport);
+                    }
+                }
             }
 
             if ((string.IsNullOrEmpty(thisvolume) && string.IsNullOrEmpty(thisdisk)) && !list)
@@ -391,40 +445,78 @@ namespace SPECTR3
             string txtTargetIQN;
 
             //Initialize Network parameters
+            IPAddress permitedAddress = IPAddress.Any;
             IPAddress serverAddress;
             String serverIP;
-            try
-            {
-                serverIP = GetLocalIPAddress();
-            }
-            catch
-            {
-                serverIP = string.Empty;
-            }
 
-            if (!string.IsNullOrEmpty(thisbind))
+            if (sshhost != null)
             {
-                // Change the Permited IP Address global value
-                serverAddress = IPAddress.Parse(thisbind);
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(serverIP))
+                serverAddress = IPAddress.Loopback;
+                permitedAddress = IPAddress.Loopback;
+
+                if (string.IsNullOrEmpty(sshuser))
                 {
-                    serverAddress = IPAddress.Any;
+                    //get sshuser by prompt
+                    Console.WriteLine("  - SSH Username:");
+                    sshuser = Console.ReadLine();
+                }
+
+                if (string.IsNullOrEmpty(sshpass))
+                {
+                    //get sshuser by prompt
+                    Console.WriteLine("  - SSH Password:");
+                    sshpass = Console.ReadLine();
                 }
                 else
                 {
-                    serverAddress = IPAddress.Parse(serverIP);
+                    //Check if sshpass is base64 encoded
+                    if (IsBase64String(sshpass))
+                    {
+                        sshpass = Base64Decode(sshpass).TrimEnd('\r', '\n'); ;
+                        Console.WriteLine("DEBUG |{0}|",sshpass);
+                    }
+                    else
+                    {
+                        Console.WriteLine("    + Error: SSH Password is not base64 encoded");
+                        return 1;
+                    }
+
+                }
+            }
+            else
+            {
+
+                try
+                {
+                    serverIP = GetLocalIPAddress();
+                }
+                catch
+                {
+                    serverIP = string.Empty;
+                }
+
+                if (!string.IsNullOrEmpty(thisbind))
+                {
+                    serverAddress = IPAddress.Parse(thisbind);
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(serverIP))
+                    {
+                        serverAddress = IPAddress.Any;
+                    }
+                    else
+                    {
+                        serverAddress = IPAddress.Parse(serverIP);
+                    }
+                }
+                if (!string.IsNullOrEmpty(thisip))
+                {
+                    // Change the Permited IP Address global value
+                    permitedAddress = IPAddress.Parse(thisip);
                 }
             }
 
-            IPAddress permitedAddress = IPAddress.Any;
-            if (!string.IsNullOrEmpty(thisip))
-            {
-                // Change the Permited IP Address global value
-                permitedAddress = IPAddress.Parse(thisip);
-            }
 
             ISCSIServer m_server = new ISCSIServer(permitedAddress);
             string drivename = String.Empty;
@@ -484,7 +576,8 @@ namespace SPECTR3
                 Console.WriteLine("  - Invalid TCP port", "Error");
                 return 1;
             }
-            IPEndPoint endpoint = new IPEndPoint(serverAddress, port);
+            //IPEndPoint endpoint = new IPEndPoint(serverAddress, port);
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, port);
             try
             {
                 m_server.Start(endpoint);
@@ -497,16 +590,55 @@ namespace SPECTR3
 
                 Console.WriteLine("  - SPECTR3 Server running at " + serverAddress + ":" + port);
                 Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
-                Console.WriteLine("  - Press any key to stop sharing and close server ...  ");
-                // Does not close the console window
-                Console.ReadLine();
-                
+
             }
+
             catch (SocketException ex)
             {
                 Console.WriteLine("  - Cannot start server, " + ex.Message, "Error");
                 return 1;
             }
+
+            if (sshhost != null)
+            {
+                ConnectionInfo ConnNfo = new ConnectionInfo(sshhost, sshport, sshuser, new AuthenticationMethod[] { new PasswordAuthenticationMethod(sshuser, sshpass) });
+                SshClient sshclient = new SshClient(ConnNfo);
+                sshclient.KeepAliveInterval = new TimeSpan(0, 0, 30);
+                sshclient.ConnectionInfo.Timeout = new TimeSpan(0, 0, 20);
+                try
+                { 
+                    sshclient.Connect();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("    + Cannot connect to SSH server, " + ex.Message, "Error");
+                    return 1;
+                }
+
+                ForwardedPortRemote fwdport = new ForwardedPortRemote((uint)port, "127.0.0.1", (uint)port);
+                if (sshclient.IsConnected)
+                {
+                    sshclient.AddForwardedPort(fwdport);
+                    fwdport.Exception += delegate (object sender, ExceptionEventArgs e)
+                    {
+                        Console.WriteLine("    + Error forwarding port: " + e.Exception.ToString());
+                    };
+                    fwdport.Start();
+                    Console.WriteLine("    + SSH Tunnel successfully connected to " + sshhost + ":" + sshport);
+                }
+                Console.WriteLine("  - Press any key to disconnect ssh tunnel ...  ");
+                Console.ReadLine();
+                fwdport.Stop();
+                sshclient.Disconnect();
+                Console.WriteLine("    + SSH Tunnel disconnected");
+                Console.WriteLine();
+            }
+
+            // Does not close the console window
+            Console.WriteLine("  - Press any key to stop sharing and close server ...  ");
+            Console.ReadLine();
+            m_server.Stop();
+            Console.WriteLine("    + Server stopped. Bye");
 
             return 0;
         }
