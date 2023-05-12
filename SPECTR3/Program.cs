@@ -281,7 +281,7 @@ namespace SPECTR3
 
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.3.2 - Remote forensics tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.4 - Remote forensics tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
