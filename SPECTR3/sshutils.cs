@@ -1,52 +1,52 @@
 ﻿using Renci.SshNet.Common;
 using Renci.SshNet;
 using System;
+using System.Threading.Tasks;
+
 
 namespace SPECTR3
 {
     internal class SPECTR3SSH
     {
-        public SshClient sshclient;
-        public ForwardedPortRemote fwdport;
+        private readonly SshClient sshClient;
+        private readonly ForwardedPortRemote fwdPort;
 
-        public void StartSshReverseTunnel(String sshhost,int sshport, String sshuser, String sshpass, uint dstport)
+        public SPECTR3SSH(string sshHost, int sshPort, string sshUser, string sshPass, uint dstPort)
         {
-            ConnectionInfo ConnNfo = new ConnectionInfo(sshhost, sshport, sshuser, new AuthenticationMethod[] { new PasswordAuthenticationMethod(sshuser, sshpass) });
-            sshclient = new SshClient(ConnNfo);
-            sshclient.KeepAliveInterval = new TimeSpan(0, 0, 30);
-            sshclient.ConnectionInfo.Timeout = new TimeSpan(0, 0, 20);
-            try
-            {
-                sshclient.Connect();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("    + Cannot connect to SSH server, " + ex.Message, "Error");
-                return;
-            }
+            ConnectionInfo connInfo = new ConnectionInfo(sshHost, sshPort, sshUser, new AuthenticationMethod[] { new PasswordAuthenticationMethod(sshUser, sshPass) });
+            sshClient = new SshClient(connInfo);
+            sshClient.KeepAliveInterval = TimeSpan.FromSeconds(30);
+            sshClient.ConnectionInfo.Timeout = TimeSpan.FromSeconds(20);
+            sshClient.Connect();
 
-            fwdport = new ForwardedPortRemote(dstport, "127.0.0.1", dstport);
-            if (sshclient.IsConnected)
+            fwdPort = new ForwardedPortRemote(dstPort, "127.0.0.1", dstPort);
+            if (sshClient.IsConnected)
             {
-                sshclient.AddForwardedPort(fwdport);
-                fwdport.Exception += delegate (object sender, ExceptionEventArgs e)
+                sshClient.AddForwardedPort(fwdPort);
+                fwdPort.Exception += delegate (object sender, ExceptionEventArgs e)
                 {
-                    Console.WriteLine("    + Error forwarding port: " + e.Exception.ToString());
+                    Console.WriteLine("    + Error forwarding port: {0}", e.Exception);
                 };
-                fwdport.Start();
-                Console.WriteLine("    + SSH Tunnel successfully connected to " + sshhost + ":" + sshport);
+                fwdPort.Start();
+                Console.WriteLine("    + SSH tunnel successfully connected to {0}:{1}", sshHost, sshPort);
             }
-            Console.WriteLine("  - Press any key to disconnect ssh tunnel ...  ");
-            Console.ReadLine();
-            CloseRemoteSSHTune();
         }
 
-        public void CloseRemoteSSHTune()
+        public async Task CloseRemoteSSHTunnelAsync()
         {
-            fwdport.Stop();
-            sshclient.Disconnect();
-            Console.WriteLine("    + SSH Tunnel disconnected");
+            await Task.Run(() =>
+            {
+                fwdPort.Stop();
+                sshClient.Disconnect();
+                Console.WriteLine("    + SSH tunnel disconnected.");
+            });
         }
 
+        public void CloseRemoteSSHTunnel()
+        {
+            fwdPort.Stop();
+            sshClient.Disconnect();
+            Console.WriteLine("    + SSH tunnel disconnected.");
+        }
     }
 }

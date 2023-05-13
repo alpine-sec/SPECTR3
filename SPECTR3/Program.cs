@@ -147,7 +147,8 @@ namespace SPECTR3
                                                "This is the result of years of automation",
                                                "I'll take this in one night",
                                                "It is just a IF",
-                                               "We need a mind blowing presentation "};
+                                               "We need a mind blowing presentation",
+                                               "Nobody told me the code had to be secure"};
             Random rnd = new Random();
             int index = rnd.Next(messages.Length);
             return messages[index];
@@ -316,7 +317,7 @@ namespace SPECTR3
 
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.4.3 - Remote acquisition and forensic tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.4.4 - Remote acquisition and forensic tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
@@ -699,11 +700,21 @@ namespace SPECTR3
                 Console.WriteLine("  - SPECTR3 Server running at " + serverAddress + ":" + port);
                 Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
 
+                SPECTR3SSH ssh = null;
+
                 if (!string.IsNullOrEmpty(sshhost))
                 {
-                    SPECTR3SSH ssh = new SPECTR3SSH();
-                    ssh.StartSshReverseTunnel(sshhost, sshport, sshuser, sshpass, (uint)port);
+                    ssh = new SPECTR3SSH(sshhost, sshport, sshuser, sshpass, (uint)port);
                 }
+                // Does not close the console window
+                Console.WriteLine("  - Press any key to stop sharing and close server ...  ");
+                Console.ReadLine();
+                if (ssh != null) // close SSH tunnel if it was created
+                {
+                    ssh.CloseRemoteSSHTunnel();
+                }
+                m_server.Stop();
+                Console.WriteLine("    + Server stopped. Bye");
 
             }
 
@@ -712,12 +723,6 @@ namespace SPECTR3
                 Console.WriteLine("  - Cannot start server, " + ex.Message, "Error");
                 return 1;
             }
-
-            // Does not close the console window
-            Console.WriteLine("  - Press any key to stop sharing and close server ...  ");
-            Console.ReadLine();
-            m_server.Stop();
-            Console.WriteLine("    + Server stopped. Bye");
 
             return 0;
         }
