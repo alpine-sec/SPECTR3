@@ -1,4 +1,4 @@
-﻿/* (c) Author: Miguel Quero (Based in iSCSI-Console work)
+﻿/* (c) Author: Miguel Quero (KeRo99)
  * 
  * E-mail: miguel.quero@alpinesec.io
  * Company: Alpine Security
@@ -282,7 +282,7 @@ namespace SPECTR3
 
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.4.1 - Remote forensics tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.4.2 - Remote acquisition and forensic tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
