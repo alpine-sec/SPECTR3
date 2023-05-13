@@ -684,7 +684,7 @@ namespace SPECTR3
                 Console.WriteLine("  - Invalid TCP port", "Error");
                 return 1;
             }
-            //IPEndPoint endpoint = new IPEndPoint(serverAddress, port);
+
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, port);
             try
             {
@@ -699,18 +699,18 @@ namespace SPECTR3
                 Console.WriteLine("  - SPECTR3 Server running at " + serverAddress + ":" + port);
                 Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
 
+                if (!string.IsNullOrEmpty(sshhost))
+                {
+                    SPECTR3SSH ssh = new SPECTR3SSH();
+                    ssh.StartSshReverseTunnel(sshhost, sshport, sshuser, sshpass, (uint)port);
+                }
+
             }
 
             catch (SocketException ex)
             {
                 Console.WriteLine("  - Cannot start server, " + ex.Message, "Error");
                 return 1;
-            }
-
-            if (!string.IsNullOrEmpty(sshhost))
-            {
-                SPECTR3SSH ssh = new SPECTR3SSH();
-                ssh.StartSshReverseTunnel(sshhost, sshport, sshuser, sshpass, (uint)port);
             }
 
             // Does not close the console window
