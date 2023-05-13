@@ -326,14 +326,14 @@ namespace SPECTR3
             string sshhost = string.Empty;
             string thissshport = string.Empty;
 
-            int port = 3262;
+            int port = 3260;
             int sshport = 22;
 
             List<string> volstr = new List<string>();
             List<string> dskstr = new List<string>();
             List<string> validargs = new List<string>()
                  { "--list", "--port", "--permitip", "--bindip", "--volume", "--disk", "--help", "--sshuser",
-                   "--sshpass", "--sshhost", "--sshport", "-l", "-p", "-i", "-b", "-h", "-v", "-d"};
+                   "--sshpass", "--sshhost", "--sshport", "-l", "-p", "-i", "-b", "-h", "-v", "-d", "-o"};
 
             if (!SecurityHelper.IsAdministrator())
             {
@@ -476,7 +476,7 @@ namespace SPECTR3
             {
                 serverAddress = IPAddress.Loopback;
                 permitedAddress = IPAddress.Loopback;
-
+            
                 if (string.IsNullOrEmpty(sshuser))
                 {
                     //get sshuser by prompt
@@ -644,40 +644,12 @@ namespace SPECTR3
 
             if (!string.IsNullOrEmpty(sshhost))
             {
-                ConnectionInfo ConnNfo = new ConnectionInfo(sshhost, sshport, sshuser, new AuthenticationMethod[] { new PasswordAuthenticationMethod(sshuser, sshpass) });
-                SshClient sshclient = new SshClient(ConnNfo);
-                sshclient.KeepAliveInterval = new TimeSpan(0, 0, 30);
-                sshclient.ConnectionInfo.Timeout = new TimeSpan(0, 0, 20);
-                try
-                { 
-                    sshclient.Connect();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("    + Cannot connect to SSH server, " + ex.Message, "Error");
-                    return 1;
-                }
-
-                ForwardedPortRemote fwdport = new ForwardedPortRemote((uint)port, "127.0.0.1", (uint)port);
-                if (sshclient.IsConnected)
-                {
-                    sshclient.AddForwardedPort(fwdport);
-                    fwdport.Exception += delegate (object sender, ExceptionEventArgs e)
-                    {
-                        Console.WriteLine("    + Error forwarding port: " + e.Exception.ToString());
-                    };
-                    fwdport.Start();
-                    Console.WriteLine("    + SSH Tunnel successfully connected to " + sshhost + ":" + sshport);
-                }
-                Console.Write("  - Press any key to disconnect ssh tunnel ...  ");
-                Console.ReadLine();
-                fwdport.Stop();
-                sshclient.Disconnect();
-                Console.WriteLine("    + SSH Tunnel disconnected");
+                SPECTR3SSH ssh = new SPECTR3SSH();
+                ssh.StartSshReverseTunnel(sshhost, sshport, sshuser, sshpass, (uint)port);
             }
 
             // Does not close the console window
-            Console.Write("  - Press any key to stop sharing and close server ...  ");
+            Console.WriteLine("  - Press any key to stop sharing and close server ...  ");
             Console.ReadLine();
             m_server.Stop();
             Console.WriteLine("    + Server stopped. Bye");
