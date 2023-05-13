@@ -25,10 +25,9 @@ using DiskAccessLibrary.Win32;
 using Utilities;
 using ISCSI.Server;
 using System.Security.Principal;
-using Renci.SshNet;
-using Renci.SshNet.Common;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using System.Linq;
 
 namespace SPECTR3
 {
@@ -185,27 +184,31 @@ namespace SPECTR3
             return ipaddress;
         }
 
-        //Check if a given ip address is valid in this machine
-        public static bool CheckIP(string ipaddress)
+        public static bool CheckIP(string ipAddress)
         {
-            bool valid = false;
-            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
+            foreach (NetworkInterface networkInterface in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet && ni.OperationalStatus == OperationalStatus.Up)
+                if (networkInterface.NetworkInterfaceType == NetworkInterfaceType.Ethernet && networkInterface.OperationalStatus == OperationalStatus.Up ||
+                    networkInterface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 && networkInterface.OperationalStatus == OperationalStatus.Up)
                 {
-                    foreach (GatewayIPAddressInformation gipi in ni.GetIPProperties().GatewayAddresses)
+                    foreach (UnicastIPAddressInformation ipInfo in networkInterface.GetIPProperties().UnicastAddresses)
                     {
-                        if (gipi.Address.AddressFamily == AddressFamily.InterNetwork)
+                        if (ipInfo.Address.AddressFamily == AddressFamily.InterNetwork &&
+                            IPAddress.Parse(ipAddress).Equals(ipInfo.Address))
                         {
-                            if (ipaddress == ni.GetIPProperties().UnicastAddresses[1].Address.ToString())
-                            {
-                                valid = true;
-                            }
+                            return true;
                         }
                     }
                 }
             }
-            return valid;
+            return false;
+        }
+
+        public static bool ValidateIPv4(string ip)
+        {
+            IPAddress address;
+            return ip != null && ip.Count(c => c == '.') == 3 &&
+                IPAddress.TryParse(ip, out address);
         }
 
         static String BytesToString(long byteCount)
@@ -219,34 +222,43 @@ namespace SPECTR3
             return (Math.Sign(byteCount) * num).ToString() + suf[place];
         }
 
-        static List<string> VolumesList()
+        public static List<string> VolumesList()
         {
-            List<string> volstr = new List<string>();
+            List<string> volumeList = new List<string>();
+
             List<Volume> volumes = WindowsVolumeHelper.GetVolumes();
-            for (int index = 0; index < volumes.Count; index++)
+            for (int i = 0; i < volumes.Count; i++)
             {
-                Volume volume = volumes[index];
-                string title = String.Format("Volume {0}", index);
+                Volume volume = volumes[i];
+                string title = String.Format("Vol {0}", i);
                 string type = VolumeHelper.GetVolumeTypeString(volume);
                 string status = VolumeHelper.GetVolumeStatusString(volume);
-                string drivename = String.Format("vol{0}", index);
+
                 ulong volumeID = 0;
                 string name = String.Empty;
+
                 if (volume is DynamicVolume)
                 {
-                    volumeID = ((DynamicVolume)volume).VolumeID;
-                    name = ((DynamicVolume)volume).Name;
+                    var dynamicVolume = (DynamicVolume)volume;
+                    volumeID = dynamicVolume.VolumeID;
+                    name = dynamicVolume.Name;
                 }
                 else if (volume is GPTPartition)
                 {
                     name = ((GPTPartition)volume).PartitionName;
                 }
-                string thissize = BytesToString(volume.Size);
-                volstr.Add("    + " + title + ": " + name + " " + type + " " + thissize + " " + " " + status);
-                
-            }
-            return volstr;
 
+                if (string.IsNullOrEmpty(name))
+                {
+                    name = "Noname";
+                }
+
+                string thisSizeString = BytesToString(volume.Size);
+                string line = $"    + {title}:  {name} {type} {thisSizeString} {status}";
+                volumeList.Add(line);
+            }
+
+            return volumeList;
         }
 
         static List<string> DiskList()
@@ -255,11 +267,13 @@ namespace SPECTR3
             List<PhysicalDisk> physicalDisks = PhysicalDiskHelper.GetPhysicalDisks();
             foreach (PhysicalDisk physicalDisk in physicalDisks)
             {
-                string title = String.Format("Disk {0}", physicalDisk.PhysicalDiskIndex);
+                string title = String.Format("Dsk {0}", physicalDisk.PhysicalDiskIndex);
                 string description = physicalDisk.Description;
                 string serialNumber = physicalDisk.SerialNumber;
                 string sizeString = BytesToString(physicalDisk.Size);
+
                 string status = string.Empty;
+                string line;
                 try
                 {
                     if (Environment.OSVersion.Version.Major > 6)
@@ -268,21 +282,41 @@ namespace SPECTR3
                         status = isOnline ? "Online" : "Offline";
 
                     }
+                    
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    ///Console.WriteLine("Error listing disks." + e);
-                    //Console.WriteLine("    + Error listing disk." + Environment.OSVersion.Version.Major);
-                    ///throw;
+                    status = "Unknown";
                 }
-                dskstr.Add("    + " + title + ": " + description + " " + serialNumber + " " + sizeString + " " + status);
+                line = string.Format("    + {0}:  {1}  {2}  {3}  {4}", title, description, serialNumber, sizeString, status);
+                dskstr.Add(line);
             }
             return dskstr;
         }
 
+
+
+        static void ShowDiskAndVolumes()
+        {
+            List<string> volstr;
+            List<string> dskstr;
+            Console.WriteLine("- List Physical Disks:");
+            dskstr = DiskList();
+            foreach (string dsk in dskstr)
+            {
+                Console.WriteLine(dsk);
+            }
+            Console.WriteLine("- List Volumes:");
+            volstr = VolumesList();
+            foreach (string vol in volstr)
+            {
+                Console.WriteLine(vol);
+            }
+        }
+
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.4.2 - Remote acquisition and forensic tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.4.3 - Remote acquisition and forensic tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
@@ -315,7 +349,6 @@ namespace SPECTR3
             bool list = false;
             bool thisegg = false;
 
-            string thisport = string.Empty;
             string thisip = string.Empty;
             string thisbind = string.Empty;
             string thisvolume = string.Empty;
@@ -324,13 +357,13 @@ namespace SPECTR3
             string sshuser = string.Empty;
             string sshpass = string.Empty;
             string sshhost = string.Empty;
-            string thissshport = string.Empty;
 
-            int port = 3260;
+            string thisport;
+            string thissshport;
+
+            int port = 3262;
             int sshport = 22;
 
-            List<string> volstr = new List<string>();
-            List<string> dskstr = new List<string>();
             List<string> validargs = new List<string>()
                  { "--list", "--port", "--permitip", "--bindip", "--volume", "--disk", "--help", "--sshuser",
                    "--sshpass", "--sshhost", "--sshport", "-l", "-p", "-i", "-b", "-h", "-v", "-d", "-o"};
@@ -351,21 +384,10 @@ namespace SPECTR3
 
                 var arg = args[i].ToLower();
 
-                if (arg == "--list"|| arg == "-l")
+                if (arg == "--list" || arg == "-l")
                 {
                     list = true;
-                    Console.WriteLine("- List Physical Disks:");
-                    dskstr = DiskList();
-                    foreach (string dsk in dskstr)
-                    {
-                        Console.WriteLine(dsk);
-                    }
-                    Console.WriteLine("- List Volumes:");
-                    volstr = VolumesList();
-                    foreach (string vol in volstr)
-                    {
-                        Console.WriteLine(vol);
-                    }
+                    ShowDiskAndVolumes();
                     return 0;
                 }
 
@@ -377,16 +399,33 @@ namespace SPECTR3
 
                 if (arg == "--permitip" || arg == "-i")
                 {
+                    if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
+                    {
+                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        return 1;
+                    }
+
+                    if (!ValidateIPv4(args[i + 1]))
+                    {
+                        Console.WriteLine("  - Invalid Permited IP address");
+                        return 1;
+                    }
+
                     thisip = args[i + 1];
                 }
 
                 if (arg == "--bindip" || arg == "-b")
                 {
+                    if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
+                    {
+                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        return 1;
+                    }
                     thisbind = args[i + 1];
 
-                    if(CheckIP(thisbind) == false)
+                    if (CheckIP(thisbind) == false)
                     {
-                        Console.WriteLine("  - Invalid IP address");
+                        Console.WriteLine("  - Invalid Bind IP address");
                         return 1;
                     }
                 }
@@ -398,26 +437,31 @@ namespace SPECTR3
                     {
                         port = Conversion.ToInt32(thisport);
                     }
+                    else
+                    {
+                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        return 1;
+                    }
                 }
 
                 if (arg == "--volume" || arg == "-v")
                 {
-                    thisvolume = args[i + 1];
-                    if (string.IsNullOrEmpty(thisvolume))
+                    if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - Volume Index value is mandatory");
+                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
                         return 1;
                     }
+                    thisvolume = args[i + 1];
                 }
 
                 if (arg == "--disk" || arg == "-d")
                 {
-                    thisdisk = args[i + 1];
-                    if (string.IsNullOrEmpty(thisdisk))
+                    if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - Disk Index value is mandatory");
+                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
                         return 1;
                     }
+                    thisdisk = args[i + 1];
                 }
 
                 if (arg == "-o")
@@ -427,22 +471,38 @@ namespace SPECTR3
 
                 if (arg == "--sshuser")
                 {
+                    if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
+                    {
+                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        return 1;
+                    }
                     sshuser = args[i + 1];
                 }
 
                 if (arg == "--sshpass")
                 {
+                    if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
+                    {
+                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        return 1;
+                    }
                     sshpass = args[i + 1];
                 }
 
                 if (arg == "--sshhost")
                 {
-                    sshhost = args[i + 1];
-                    if (string.IsNullOrEmpty(sshhost))
+                    if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - SSH Host is empty");
+                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
                         return 1;
                     }
+
+                    if (!ValidateIPv4(args[i + 1]))
+                    {
+                        Console.WriteLine("  - Invalid SSH IP address");
+                        return 1;
+                    }
+                    sshhost = args[i + 1];
                 }
 
                 if (arg == "--sshport")
@@ -451,6 +511,11 @@ namespace SPECTR3
                     if (!string.IsNullOrEmpty(thissshport))
                     {
                         sshport = Conversion.ToInt32(thissshport);
+                    }
+                    else
+                    {
+                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        return 1;
                     }
                 }
             }
