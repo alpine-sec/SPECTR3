@@ -166,6 +166,34 @@ Logging out of session [sid: 1, target: iqn.2023-05.io.alpine:dsk0, portal: 172.
 Logout of [sid: 1, target: iqn.2023-05.io.alpine:dsk0, portal: 172.20.118.42,3262] successful.
 ```
 
+### Connect to a Spectr3 iSCSI target with OSx
+In OSx install KernSafe ISCSI Initiator X.
+
+https://www.kernsafe.com/product/macos-iscsi-initiator.aspx
+
+1. Discover targets with "Discover" and Discover Menu:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/41c733c6-a95d-42b7-a981-d29c3da813d2)
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/c7f8a60c-4540-4095-998c-14b66b47ee95)
+
+2. Use Spectr3 server IP and Port:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/13ca7eb6-46b3-4ca5-a909-c1f00d6f4607)
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/f213594f-28ae-492b-aec2-4d5b4e2c0620)
+
+3. Connect to target:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/622a866a-5a57-43de-af20-2e40c6332120)
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/71ef738c-e655-4aec-b5e1-1d022e7bc879)
+
+4. Acquire or analyze with your favorite tool:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/7daa7ecb-392b-4347-9721-0cb6ec033663)
+
+
 ### Improved security through IP ACLs
 Use -i option to improve de security via IP ACL. Only the permited IP will access to target
 ```
