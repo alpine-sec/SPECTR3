@@ -93,6 +93,8 @@ C:\Users\dev\Desktop>SPECTR3.exe -d 0
 ```
 Close terminal o press any key for sharing termination
 
+---
+
 ### Connect to a Spectr3 iSCSI target  with Windows
 In Windows Investigator machines you can use the windows native tool iSCSI Initiator:
 1. Discover targets with "Discover Portal" in "Discovery Tab":
@@ -138,6 +140,8 @@ Total execution time: 6.5953 seconds
 
 5. Disconnect when finish
 
+---
+
 ### Connect to a Spectr3 iSCSI target with Linux
 In linux distros install open-iscsi with apt or yum.
 1. Discover targets:
@@ -165,7 +169,7 @@ admuser@lindev:/tmp$ sudo iscsiadm -m node -u
 Logging out of session [sid: 1, target: iqn.2023-05.io.alpine:dsk0, portal: 172.20.118.42,3262]
 Logout of [sid: 1, target: iqn.2023-05.io.alpine:dsk0, portal: 172.20.118.42,3262] successful.
 ```
-
+---
 ### Connect to a Spectr3 iSCSI target with OSx
 In OSx install KernSafe ISCSI Initiator X.
 
@@ -193,6 +197,11 @@ https://www.kernsafe.com/product/macos-iscsi-initiator.aspx
 
 ![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/7daa7ecb-392b-4347-9721-0cb6ec033663)
 
+5. **Disconnect when finish:**
+
+:warning: Remember to disconnect your ISCSI drives before shutdown :warning:
+
+---
 
 ### Improved security through IP ACLs
 Use -i option to improve de security via IP ACL. Only the permited IP will access to target
