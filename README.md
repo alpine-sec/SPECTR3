@@ -9,7 +9,7 @@
   <h3 align="center">Spectr3: Remote Acquisition Tool</h3>
 
   <p align="center">
-    Acquire, triage and investigate remote evidences via portable iSCSI readonly access
+    Acquire, triage and investigate remote evidence via portable iSCSI readonly access
   </p>
 </div>
 
