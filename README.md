@@ -23,6 +23,7 @@
     <li><a href="#usage">Usage</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#scenarios">Scenarios</a></li>
   </ol>
 </details>
 
@@ -44,7 +45,7 @@ Copy portable executable of **Spectr3** to the endpoint where you want to perfor
 
 ### Command Line Options
 ```
-SPECTR3 v0.4.1 - Remote forensics tool by Alpine Security
+SPECTR3 v0.4.4 - Remote acquisition and forensic tool by Alpine Security
 Usage: SPECTR3.exe [options]
 Options:
   -l, --list
@@ -229,6 +230,12 @@ C:\Users\dev\Desktop>SPECTR3.exe -d 0 -i 10.10.10.2
 ![image](https://github.com/alpine-sec/SPECTR3/assets/143736/a75606e6-c5c1-4a9d-8265-64667d102f61)
 
 4. Connect target as usual.
+
+<!-- SCENARIOS -->
+## Scenarios
+
+![SPECTR3-Basic](https://github.com/alpine-sec/SPECTR3/assets/143736/0005fd7b-536d-4cb7-b994-34760e544334)
+
 
 <!-- ROADMAP -->
 ## Roadmap
