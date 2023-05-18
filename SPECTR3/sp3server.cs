@@ -102,11 +102,6 @@ namespace SPECTR3
                 Console.WriteLine("  - Cannot start server, " + ex.Message, "Error");
                 return;
             }
-            Console.WriteLine();
-
-            //Print Server Info
-            Console.WriteLine("  - SPECTR3 Server running at " + serverAddress + ":" + port);
-            Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
 
             //Print SSH Tunnel Info
             if (!string.IsNullOrEmpty(sshhost))

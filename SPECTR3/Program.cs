@@ -379,8 +379,16 @@ namespace SPECTR3
                     }
                 }
             }
+            String Hostname = Dns.GetHostName().ToLower();
+            if (string.IsNullOrEmpty(Hostname))
+            {
+                txtTargetIQN = String.Format("{0}:{1}", DefaultTargetIQN, drivename);
+            }
+            else
+            {
+                txtTargetIQN = String.Format("{0}.{1}:{2}", DefaultTargetIQN, Hostname, drivename);
+            }
 
-            txtTargetIQN = String.Format("{0}:{1}", DefaultTargetIQN, drivename);
             m_target = new ISCSITarget(txtTargetIQN, m_disks);
 
             try
@@ -405,6 +413,12 @@ namespace SPECTR3
                 Console.WriteLine();
                 Console.WriteLine("  - Funny MOTD: " + SP3UTILS.GetRandomMessage());
             }
+
+            //Print Server Info
+            Console.WriteLine();
+            Console.WriteLine("  - SPECTR3 Server running at " + serverAddress + ":" + port);
+            Console.WriteLine("    + Target IQN: " + txtTargetIQN);
+            Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
 
             //Start Server
             Sp3Server sp3Server = new Sp3Server(m_server, serverAddress, port, permitedAddress,
