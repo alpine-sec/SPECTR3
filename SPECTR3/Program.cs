@@ -704,8 +704,19 @@ namespace SPECTR3
                 Console.WriteLine("  - Cannot start server, " + ex.Message, "Error");
                 return 1;
             }
- 
-            return 0;
+
+            //Wait until user press enter
+            Console.WriteLine("  - Press ENTER key to stop sharing and close server ...  ");
+            while (true)
+            {
+                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
+                {
+                    sp3Server.StopServer();
+                    return 0;
+                }
+                Thread.Sleep(2000);
+            }
+            
         }
     }
 }
