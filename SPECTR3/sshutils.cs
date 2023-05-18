@@ -1,8 +1,5 @@
-﻿using Renci.SshNet.Common;
-using Renci.SshNet;
+﻿using Renci.SshNet;
 using System;
-using System.Threading.Tasks;
-
 
 namespace SPECTR3
 {
@@ -17,36 +14,55 @@ namespace SPECTR3
             sshClient = new SshClient(connInfo);
             sshClient.KeepAliveInterval = TimeSpan.FromSeconds(30);
             sshClient.ConnectionInfo.Timeout = TimeSpan.FromSeconds(20);
-            sshClient.Connect();
 
             fwdPort = new ForwardedPortRemote(dstPort, "127.0.0.1", dstPort);
-            if (sshClient.IsConnected)
+        }
+
+        public bool IsConnected { get { return sshClient.IsConnected; } }
+
+        public ConnectionState ConnectionState { get { return IsConnected ? ConnectionState.Connected : ConnectionState.Disconnected; } }
+
+        public void Connect()
+        {
+            if (!sshClient.IsConnected)
             {
-                sshClient.AddForwardedPort(fwdPort);
-                fwdPort.Exception += delegate (object sender, ExceptionEventArgs e)
+                sshClient.Connect();
+
+                if (sshClient.IsConnected)
                 {
-                    Console.WriteLine("    + Error forwarding port: {0}", e.Exception);
-                };
-                fwdPort.Start();
-                Console.WriteLine("    + SSH tunnel successfully connected to {0}:{1}", sshHost, sshPort);
+                    sshClient.AddForwardedPort(fwdPort);
+                    fwdPort.Exception += (sender, e) =>
+                    {
+                        Console.WriteLine("    + Error forwarding port: {0}", e.Exception);
+                    };
+                    fwdPort.Start();
+                    Console.WriteLine("    + SSH tunnel successfully connected to {0}:{1}", sshClient.ConnectionInfo.Host, sshClient.ConnectionInfo.Port);
+                }
+            }
+            else
+            {
+                Console.WriteLine("    + SSH tunnel is already connected to {0}:{1}", sshClient.ConnectionInfo.Host, sshClient.ConnectionInfo.Port);
             }
         }
 
-        public async Task CloseRemoteSSHTunnelAsync()
+        public void Disconnect()
         {
-            await Task.Run(() =>
+            if (sshClient.IsConnected)
             {
                 fwdPort.Stop();
                 sshClient.Disconnect();
                 Console.WriteLine("    + SSH tunnel disconnected.");
-            });
-        }
-
-        public void CloseRemoteSSHTunnel()
-        {
-            fwdPort.Stop();
-            sshClient.Disconnect();
-            Console.WriteLine("    + SSH tunnel disconnected.");
+            }
+            else
+            {
+                Console.WriteLine("    + SSH tunnel is already disconnected.");
+            }
         }
     }
+    public enum ConnectionState
+    {
+        Connected,
+        Disconnected
+    }
+
 }
