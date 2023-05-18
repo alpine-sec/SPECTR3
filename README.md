@@ -6,7 +6,7 @@
     <img width="488" alt="Spectr3_2" src="https://user-images.githubusercontent.com/143736/236651153-4bb4553b-52cb-4b28-adcb-7060ad68667f.png">
   </a>
 
-  <h3 align="center">Spectr3: Remote Acquisition Tool</h3>
+  <h3 align="center">SPECTR3: Remote Acquisition Tool</h3>
 
   <p align="center">
     Acquire, triage and investigate remote evidence via portable iSCSI readonly access
@@ -20,9 +20,21 @@
     <li>
       <a href="#about-the-project">About The Project</a>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li>
+      <a href="#usage">Usage</a>
+      <ul>
+        <li><a href="#Command-Line-Options">Command Line Options</a></li>
+        <li><a href="#List-devices-of-the-endpoint">List devices of the endpoint</a></li>
+        <li><a href="#Share-a-disk-or-volume-as-an-iSCSI-target">Share a disk or volume as an iSCSI target</a></li>
+        <li><a href="#Connect-to-a-SPECTR3-iSCSI-target-with-Windows">Connect to a SPECTR3 iSCSI target with Windows</a></li>
+        <li><a href="#Connect-to-a-SPECTR3-iSCSI-target-with-Linux">Connect to a SPECTR3 iSCSI target with Linux</a></li>
+        <li><a href="#Connect-to-a-SPECTR3-iSCSI-target-with-OSx">Connect to a SPECTR3 iSCSI target with OSx</a></li>
+        <li><a href="#Improved-security-through-IP-ACLs">Improved security through IP ACLs</a></li>
+        <li><a href="#Encrypt-connection-over-reverse-SSH">Encrypt connection over reverse SSH</a></li>
+      </ul>
+    </li>
     <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#Acknowledgments">Acknowledgments</a></li>
     <li><a href="#scenarios">Scenarios</a></li>
   </ol>
 </details>
@@ -98,7 +110,7 @@ Press ENTER for sharing termination
 
 ---
 
-### Connect to a Spectr3 iSCSI target  with Windows
+### Connect to a SPECTR3 iSCSI target with Windows
 In Windows Investigator machines you can use the windows native tool iSCSI Initiator:
 1. Discover targets with "Discover Portal" in "Discovery Tab":
 
@@ -145,7 +157,7 @@ Total execution time: 6.5953 seconds
 
 ---
 
-### Connect to a Spectr3 iSCSI target with Linux
+### Connect to a SPECTR3 iSCSI target with Linux
 In linux distros install open-iscsi with apt or yum.
 1. Discover targets:
 ```
@@ -177,7 +189,7 @@ Logout of [sid: 1, target: iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0, portal: 1
 admuser@lindev:~$ sudo iscsiadm -m node -o delete -T iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0
 ```
 ---
-### Connect to a Spectr3 iSCSI target with OSx
+### Connect to a SPECTR3 iSCSI target with OSx
 In OSx install KernSafe ISCSI Initiator X.
 
 https://www.kernsafe.com/product/macos-iscsi-initiator.aspx
