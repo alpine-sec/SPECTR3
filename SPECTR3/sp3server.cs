@@ -30,6 +30,21 @@ namespace SPECTR3
             this.sshpass = sshpass;
         }
 
+        private void DisconnectSsh(SPECTR3SSH ssh)
+        {
+            // Close SSH tunnel if it was created
+            if (ssh != null)
+            {
+                ssh.Disconnect();
+            }
+        }
+
+        private void StopServer()
+        {
+            m_server.Stop();
+            Console.WriteLine("  - SPECTR3 Server stopped. Bye");
+        }
+
         public int Start()
         {
             //Start Server
@@ -105,12 +120,8 @@ namespace SPECTR3
 
             }
 
-            if (ssh != null) // close SSH tunnel if it was created
-            {
-                ssh.Disconnect();
-            }
-            m_server.Stop();
-            Console.WriteLine("  - SPECTR3 Server stopped. Bye");
+            DisconnectSsh(ssh);
+            StopServer();
 
             return 0;
         }
