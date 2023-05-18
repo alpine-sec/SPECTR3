@@ -669,7 +669,6 @@ namespace SPECTR3
             txtTargetIQN = String.Format("{0}:{1}", DefaultTargetIQN, drivename);
             m_target = new ISCSITarget(txtTargetIQN, m_disks);
 
-
             try
             {
                 m_server.AddTarget(m_target);
@@ -686,93 +685,26 @@ namespace SPECTR3
                 return 1;
             }
 
+            //Print MOTD
+            if (thisegg)
+            {
+                Console.WriteLine();
+                Console.WriteLine("  - Funny MOTD: " + GetRandomMessage());
+            }
+
             //Start Server
-            IPEndPoint endpoint = new IPEndPoint(serverAddress, port);
+            Sp3Server sp3Server = new Sp3Server(m_server, serverAddress, port, permitedAddress,
+                                    sshhost, sshport, sshuser, sshpass);
             try
             {
-                m_server.Start(endpoint);
+                sp3Server.Start();
             }
             catch (SocketException ex)
             {
                 Console.WriteLine("  - Cannot start server, " + ex.Message, "Error");
                 return 1;
             }
-            Console.WriteLine();
-
-            //Print MOTD
-            if (thisegg)
-            {
-                Console.WriteLine("  - Funny MOTD: " + GetRandomMessage());
-                Console.WriteLine();
-            }
-
-            //Print Server Info
-            Console.WriteLine("  - SPECTR3 Server running at " + serverAddress + ":" + port);
-            Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
-            Console.WriteLine("  - Press ENTER key to stop sharing and close server ...  ");
-
-            //Print SSH Tunnel Info
-            SPECTR3SSH ssh = null;
-            if (!string.IsNullOrEmpty(sshhost))
-            {
-                int retries = 0;
-                bool StopServer = false;
-                ssh = new SPECTR3SSH(sshhost, sshport, sshuser, sshpass, (uint)port);
-                Console.WriteLine("  - Connecting to SSH server ...");
-                while (!StopServer || retries > 5)
-                {
-                    // Check if the ssh connection state is not connected
-                    if (!ssh.IsConnected)
-                    {
-                        try
-                        {
-                            if (retries > 0)
-                            {
-                                ssh = new SPECTR3SSH(sshhost, sshport, sshuser, sshpass, (uint)port);
-                                ssh.Connect();
-                                Console.WriteLine("    + SSH connection state: Re-Connected");
-                            }
-                            else
-                            {
-                                ssh.Connect();
-                                Console.WriteLine("    + SSH connection state: Connected");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("    + Error connecting to SSH server: " + ex.Message);
-                            retries++;
-                            Console.WriteLine("    + Retrying in 10 seconds ... {0}/5", retries);
-                            Thread.Sleep(10000);
-
-                        }
-                    }
-                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
-                    {
-                        StopServer = true;
-                    }
-                    Thread.Sleep(1000);
-                }
-            }
-            else
-            {
-                while (true)
-                {
-                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
-                    {
-                        break;
-                    }
-                }
-
-            }
-
-            if (ssh != null) // close SSH tunnel if it was created
-            {
-                ssh.Disconnect();
-            }
-            m_server.Stop();
-            Console.WriteLine("  - SPECTR3 Server stopped. Bye");
-
+ 
             return 0;
         }
     }
