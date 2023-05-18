@@ -9,7 +9,7 @@
   <h3 align="center">Spectr3: Remote Acquisition Tool</h3>
 
   <p align="center">
-    Acquire, triage and investigate remote evidences via portable iSCSI readonly access
+    Acquire, triage and investigate remote evidence via portable iSCSI readonly access
   </p>
 </div>
 
@@ -23,6 +23,7 @@
     <li><a href="#usage">Usage</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#scenarios">Scenarios</a></li>
   </ol>
 </details>
 
@@ -44,7 +45,7 @@ Copy portable executable of **Spectr3** to the endpoint where you want to perfor
 
 ### Command Line Options
 ```
-SPECTR3 v0.4.1 - Remote forensics tool by Alpine Security
+SPECTR3 v0.4.4 - Remote acquisition and forensic tool by Alpine Security
 Usage: SPECTR3.exe [options]
 Options:
   -l, --list
@@ -93,6 +94,8 @@ C:\Users\dev\Desktop>SPECTR3.exe -d 0
 ```
 Close terminal o press any key for sharing termination
 
+---
+
 ### Connect to a Spectr3 iSCSI target  with Windows
 In Windows Investigator machines you can use the windows native tool iSCSI Initiator:
 1. Discover targets with "Discover Portal" in "Discovery Tab":
@@ -138,6 +141,8 @@ Total execution time: 6.5953 seconds
 
 5. Disconnect when finish
 
+---
+
 ### Connect to a Spectr3 iSCSI target with Linux
 In linux distros install open-iscsi with apt or yum.
 1. Discover targets:
@@ -165,6 +170,39 @@ admuser@lindev:/tmp$ sudo iscsiadm -m node -u
 Logging out of session [sid: 1, target: iqn.2023-05.io.alpine:dsk0, portal: 172.20.118.42,3262]
 Logout of [sid: 1, target: iqn.2023-05.io.alpine:dsk0, portal: 172.20.118.42,3262] successful.
 ```
+---
+### Connect to a Spectr3 iSCSI target with OSx
+In OSx install KernSafe ISCSI Initiator X.
+
+https://www.kernsafe.com/product/macos-iscsi-initiator.aspx
+
+1. Discover targets with "Discover" and Discover Menu:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/41c733c6-a95d-42b7-a981-d29c3da813d2)
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/c7f8a60c-4540-4095-998c-14b66b47ee95)
+
+2. Use Spectr3 server IP and Port:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/13ca7eb6-46b3-4ca5-a909-c1f00d6f4607)
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/f213594f-28ae-492b-aec2-4d5b4e2c0620)
+
+3. Connect to target:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/622a866a-5a57-43de-af20-2e40c6332120)
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/71ef738c-e655-4aec-b5e1-1d022e7bc879)
+
+4. Acquire or analyze with your favorite tool:
+
+![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/7daa7ecb-392b-4347-9721-0cb6ec033663)
+
+5. **Disconnect when finish:**
+
+:warning: Remember to disconnect your ISCSI drives before shutdown :warning:
+
+---
 
 ### Improved security through IP ACLs
 Use -i option to improve de security via IP ACL. Only the permited IP will access to target
@@ -192,6 +230,12 @@ C:\Users\dev\Desktop>SPECTR3.exe -d 0 -i 10.10.10.2
 ![image](https://github.com/alpine-sec/SPECTR3/assets/143736/a75606e6-c5c1-4a9d-8265-64667d102f61)
 
 4. Connect target as usual.
+
+<!-- SCENARIOS -->
+## Scenarios
+
+![SPECTR3-Basic](https://github.com/alpine-sec/SPECTR3/assets/143736/0005fd7b-536d-4cb7-b994-34760e544334)
+
 
 <!-- ROADMAP -->
 ## Roadmap
