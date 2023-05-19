@@ -6,7 +6,7 @@
     <img width="488" alt="Spectr3_2" src="https://user-images.githubusercontent.com/143736/236651153-4bb4553b-52cb-4b28-adcb-7060ad68667f.png">
   </a>
 
-  <h3 align="center">Spectr3: Remote Acquisition Tool</h3>
+  <h3 align="center">SPECTR3: Remote Acquisition Tool</h3>
 
   <p align="center">
     Acquire, triage and investigate remote evidence via portable iSCSI readonly access
@@ -20,9 +20,21 @@
     <li>
       <a href="#about-the-project">About The Project</a>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li>
+      <a href="#usage">Usage</a>
+      <ul>
+        <li><a href="#Command-Line-Options">Command Line Options</a></li>
+        <li><a href="#List-devices-of-the-endpoint">List devices of the endpoint</a></li>
+        <li><a href="#Share-a-disk-or-volume-as-an-iSCSI-target">Share a disk or volume as an iSCSI target</a></li>
+        <li><a href="#Connect-to-a-SPECTR3-iSCSI-target-with-Windows">Connect to a SPECTR3 iSCSI target with Windows</a></li>
+        <li><a href="#Connect-to-a-SPECTR3-iSCSI-target-with-Linux">Connect to a SPECTR3 iSCSI target with Linux</a></li>
+        <li><a href="#Connect-to-a-SPECTR3-iSCSI-target-with-OSx">Connect to a SPECTR3 iSCSI target with OSx</a></li>
+        <li><a href="#Improved-security-through-IP-ACLs">Improved security through IP ACLs</a></li>
+        <li><a href="#Encrypt-connection-over-reverse-SSH">Encrypt connection over reverse SSH</a></li>
+      </ul>
+    </li>
     <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#Acknowledgments">Acknowledgments</a></li>
     <li><a href="#scenarios">Scenarios</a></li>
   </ol>
 </details>
@@ -41,11 +53,11 @@ And of course... just for fun!
 ## Usage
 [**DOWNLOAD EXECUTABLE**](https://github.com/alpine-sec/SPECTR3/releases/latest)
 
-Copy portable executable of **Spectr3** to the endpoint where you want to perform remote acquisition, triage or forensic analysis, **remember that you will need administrator permissions to access the block devices.**
+Copy portable executable of **SPECTR3** to the endpoint where you want to perform remote acquisition, triage or forensic analysis, **remember that you will need administrator permissions to access the block devices.**
 
 ### Command Line Options
 ```
-SPECTR3 v0.4.4 - Remote acquisition and forensic tool by Alpine Security
+SPECTR3 v0.4.6 - Remote acquisition and forensic tool by Alpine Security
 Usage: SPECTR3.exe [options]
 Options:
   -l, --list
@@ -76,27 +88,29 @@ Options:
 ```
 C:\Users\dev\Desktop>SPECTR3.exe -l
 - List Physical Disks:
-    + Disk 0: Msft Virtual Disk  60GB
+    + Dsk 0:  Msft Virtual Disk    60GB
 - List Volumes:
-    + Volume 0: EFI system partition Partition 100MB  Healthy
-    + Volume 1: Microsoft reserved partition Partition 16MB  Healthy
-    + Volume 2: Basic data partition Partition 59.4GB  Healthy
-    + Volume 3:  Partition 530MB  Healthy
+    + Vol 0:  EFI system partition Partition 100MB Healthy
+    + Vol 1:  Microsoft reserved partition Partition 16MB Healthy
+    + Vol 2:  Basic data partition Partition 59.4GB Healthy
+    + Vol 3:  Noname Partition 530MB Healthy
 ```
 
 ### Share a disk or volume as an iSCSI target
 Use -d if you want share a full disk or -v if only you want to share a volume. Use the index of de volume or disk in -l list. (Allow Access in firewall if popup)
 ```
 C:\Users\dev\Desktop>SPECTR3.exe -d 0
-  - SPECTR3 Server running at 172.20.118.42:3262
+
+  - SPECTR3 Server running at 172.29.10.42:3262
+    + Target IQN: iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0
     + Access Permited from: 0.0.0.0
-  - Press any key to stop sharing and close server ...
+  - Press ENTER key to stop sharing and close server ...
 ```
-Close terminal o press any key for sharing termination
+Press ENTER for sharing termination
 
 ---
 
-### Connect to a Spectr3 iSCSI target  with Windows
+### Connect to a SPECTR3 iSCSI target with Windows
 In Windows Investigator machines you can use the windows native tool iSCSI Initiator:
 1. Discover targets with "Discover Portal" in "Discovery Tab":
 
@@ -108,9 +122,9 @@ In Windows Investigator machines you can use the windows native tool iSCSI Initi
 
 3. Connect to target in "Targets" tab:
 
-![image](https://user-images.githubusercontent.com/143736/236651418-2dc784ae-5ccc-4608-8830-cf3ec3d98f39.png)
+![image](https://github.com/alpine-sec/SPECTR3/assets/143736/aaefcd2f-3b87-4876-96da-394302d1aed4)
 
-![image](https://user-images.githubusercontent.com/143736/236651459-7a7d2339-72d3-4a3e-b3ab-55cc1e08ecaa.png)
+![image](https://github.com/alpine-sec/SPECTR3/assets/143736/98873058-f912-4b53-a638-1370a419e4f1)
 
 4. Acquire or analyze with your favorite tool:
 
@@ -143,18 +157,18 @@ Total execution time: 6.5953 seconds
 
 ---
 
-### Connect to a Spectr3 iSCSI target with Linux
+### Connect to a SPECTR3 iSCSI target with Linux
 In linux distros install open-iscsi with apt or yum.
 1. Discover targets:
 ```
-admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p 172.20.118.42:3262
-172.20.118.42:3262,-1 iqn.2023-05.io.alpine:dsk0
+admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p 172.29.10.42:3262
+172.29.10.42:3262,-1 iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0
 ```
 2. Connect targets:
 ```
 admuser@lindev:~$ sudo iscsiadm -m node -l
-Logging in to [iface: default, target: iqn.2023-05.io.alpine:dsk0, portal: 172.20.118.42,3262]
-Login to [iface: default, target: iqn.2023-05.io.alpine:dsk0, portal: 172.20.118.42,3262] successful.
+Logging in to [iface: default, target: iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0, portal: 172.29.10.42,3262]
+Login to [iface: default, target: iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0, portal: 172.29.10.42,3262] successful.
 ```
 ![image](https://user-images.githubusercontent.com/143736/236651802-0c5699da-3ca3-4cb1-9580-7c55505eed99.png)
 
@@ -167,11 +181,15 @@ admuser@lindev:/tmp$ sudo ewfacquire -u -S 5GiB -t /tmp/windev/windev /dev/sdb
 4. Disconnect when finish:
 ```
 admuser@lindev:/tmp$ sudo iscsiadm -m node -u
-Logging out of session [sid: 1, target: iqn.2023-05.io.alpine:dsk0, portal: 172.20.118.42,3262]
-Logout of [sid: 1, target: iqn.2023-05.io.alpine:dsk0, portal: 172.20.118.42,3262] successful.
+Logging out of session [sid: 1, target: iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0, portal: 172.29.10.42,3262]
+Logout of [sid: 1, target: iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0, portal: 172.29.10.42,3262] successful.
+```
+5. (Optional) Remove Target from cache. Example:
+```
+admuser@lindev:~$ sudo iscsiadm -m node -o delete -T iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0
 ```
 ---
-### Connect to a Spectr3 iSCSI target with OSx
+### Connect to a SPECTR3 iSCSI target with OSx
 In OSx install KernSafe ISCSI Initiator X.
 
 https://www.kernsafe.com/product/macos-iscsi-initiator.aspx
