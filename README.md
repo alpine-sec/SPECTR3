@@ -57,7 +57,7 @@ Copy portable executable of **SPECTR3** to the endpoint where you want to perfor
 
 ### Command Line Options
 ```
-SPECTR3 v0.4.6 - Remote acquisition and forensic tool by Alpine Security
+SPECTR3 v0.5 - Remote acquisition and forensic tool by Alpine Security
 Usage: SPECTR3.exe [options]
 Options:
   -l, --list
@@ -82,6 +82,8 @@ Options:
     Set the ssh host to connect.
   --sshport
     Set the ssh port to connect. Default: 22
+  --daemon
+    Run SPECTR3 as background unattended process. NOTE: Manually kill by PID needed.
 ```
 
 ### List devices of the endpoint
@@ -260,6 +262,7 @@ C:\Users\dev\Desktop>SPECTR3.exe -d 0 -i 10.10.10.2
 
 - [ ] Add option to share all drives in different targets
 - [ ] Add option to install as a service
+- [X] Add option to run as daemon in background
 - [X] Tunnelized and encrypted connections
 - [ ] Multiplatform easy client
 - [ ] Others cool things...
