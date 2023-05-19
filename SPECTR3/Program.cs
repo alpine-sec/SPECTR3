@@ -20,6 +20,7 @@ using DiskAccessLibrary.Win32;
 using Utilities;
 using ISCSI.Server;
 using System.Threading;
+using System.Diagnostics;
 
 namespace SPECTR3
 {
@@ -31,7 +32,7 @@ namespace SPECTR3
 
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.4.6 - Remote acquisition and forensic tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.5 - Remote acquisition and forensic tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
@@ -56,13 +57,15 @@ namespace SPECTR3
             Console.WriteLine("    Set the ssh host to connect.");
             Console.WriteLine("  --sshport");
             Console.WriteLine("    Set the ssh port to connect. Default: 22");
-                
+            Console.WriteLine("  --daemon");
+            Console.WriteLine("    Run SPECTR3 as background unattended process. NOTE: Manually kill by PID needed.");
         }
 
         static int Main(string[] args)
         {
             bool list = false;
             bool thisegg = false;
+            bool daemon = false;
 
             string thisip = string.Empty;
             string thisbind = string.Empty;
@@ -78,10 +81,12 @@ namespace SPECTR3
 
             int port = 3262;
             int sshport = 22;
+            int pid;
 
             List<string> validargs = new List<string>()
                  { "--list", "--port", "--permitip", "--bindip", "--volume", "--disk", "--help", "--sshuser",
-                   "--sshpass", "--sshhost", "--sshport", "-l", "-p", "-i", "-b", "-h", "-v", "-d", "-o"};
+                   "--sshpass", "--sshhost", "--sshport", "--daemon", "-l", "-p", "-i", "-b", "-h", "-v",
+                   "-d", "-o"};
 
             if (!SP3UTILS.SecurityHelper.IsAdministrator())
             {
@@ -93,7 +98,7 @@ namespace SPECTR3
             {
                 if (!validargs.Contains(args[i]) && args[i].StartsWith("-"))
                 {
-                    Console.WriteLine(" - Invalid argument: " + args[i]);
+                    Console.WriteLine(" - ERROR: Invalid argument: " + args[i]);
                     return 1;
                 }
 
@@ -116,13 +121,13 @@ namespace SPECTR3
                 {
                     if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
                         return 1;
                     }
 
                     if (!SP3NET.ValidateIPv4(args[i + 1]))
                     {
-                        Console.WriteLine("  - Invalid Permited IP address");
+                        Console.WriteLine("  - ERROR: Invalid Permited IP address");
                         return 1;
                     }
 
@@ -133,14 +138,14 @@ namespace SPECTR3
                 {
                     if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
                         return 1;
                     }
                     thisbind = args[i + 1];
 
                     if (SP3NET.CheckIP(thisbind) == false)
                     {
-                        Console.WriteLine("  - Invalid Bind IP address");
+                        Console.WriteLine("  - ERROR: Invalid Bind IP address");
                         return 1;
                     }
                 }
@@ -154,7 +159,7 @@ namespace SPECTR3
                     }
                     else
                     {
-                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
                         return 1;
                     }
                 }
@@ -163,7 +168,7 @@ namespace SPECTR3
                 {
                     if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
                         return 1;
                     }
                     thisvolume = args[i + 1];
@@ -173,7 +178,7 @@ namespace SPECTR3
                 {
                     if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
                         return 1;
                     }
                     thisdisk = args[i + 1];
@@ -188,7 +193,7 @@ namespace SPECTR3
                 {
                     if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
                         return 1;
                     }
                     sshuser = args[i + 1];
@@ -198,7 +203,7 @@ namespace SPECTR3
                 {
                     if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
                         return 1;
                     }
                     sshpass = args[i + 1];
@@ -208,16 +213,17 @@ namespace SPECTR3
                 {
                     if ((i + 1) >= args.Length || string.IsNullOrWhiteSpace(args[i + 1]))
                     {
-                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
                         return 1;
                     }
 
                     if (!SP3NET.ValidateIPv4(args[i + 1]))
                     {
-                        Console.WriteLine("  - Invalid SSH IP address");
+                        Console.WriteLine("  - ERROR: Invalid SSH IP address");
                         return 1;
                     }
                     sshhost = args[i + 1];
+
                 }
 
                 if (arg == "--sshport")
@@ -229,7 +235,25 @@ namespace SPECTR3
                     }
                     else
                     {
-                        Console.WriteLine("  - Argument cannot be empty: " + args[i]);
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
+                        return 1;
+                    }
+                }
+            }
+
+            // These arguments have to be checked after other previously checked arguments.
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--daemon")
+                {
+                    daemon = true;
+                }
+                
+                if (!string.IsNullOrEmpty(sshhost) && daemon)
+                {
+                    if (string.IsNullOrEmpty(sshpass) || string.IsNullOrEmpty(sshuser))
+                    {
+                        Console.WriteLine("  - ERROR: If --daemon and --sshhost are provided, --sshuser and --sshpass arguments are required.");
                         return 1;
                     }
                 }
@@ -240,7 +264,6 @@ namespace SPECTR3
                 PrintHelp();
                 return 1;
             }
-
 
             //Initiatize values
             ISCSITarget m_target;
@@ -308,7 +331,6 @@ namespace SPECTR3
             }
             else
             {
-
                 try
                 {
                     serverIP = SP3NET.GetLocalIPAddress();
@@ -412,6 +434,36 @@ namespace SPECTR3
             {
                 Console.WriteLine();
                 Console.WriteLine("  - Funny MOTD: " + SP3UTILS.GetRandomMessage());
+            }
+
+            //Daemon mode
+            if (daemon)
+            {
+                string argsString = string.Join(" ", args);
+                if (argsString.Contains("--daemon"))
+                {
+                    argsString = argsString.Replace("--daemon", "");
+                }
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                // Establecer el nombre del ejecutable y los argumentos
+                startInfo.FileName = "SPECTR3.exe";
+                startInfo.Arguments = argsString;
+                startInfo.CreateNoWindow = true;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                // Redirigir la salida estándar y evitar su visualización
+                startInfo.RedirectStandardOutput = true;
+                startInfo.UseShellExecute = false; // Iniciar el proceso en segundo plano
+                Process process = Process.Start(startInfo); // Descartar la salida estándar del proceso hijo
+                //Get PID of the background process
+                pid = process.Id;
+
+                //Print Server Info
+                Console.WriteLine();
+                Console.WriteLine("  - SPECTR3 Server running in background PID (" + pid + ") at "
+                                       + serverAddress + ":" + port);
+                Console.WriteLine("    + Target IQN: " + txtTargetIQN);
+                Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
+                return 0;
             }
 
             //Print Server Info
