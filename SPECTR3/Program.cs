@@ -445,15 +445,13 @@ namespace SPECTR3
                     argsString = argsString.Replace("--daemon", "");
                 }
                 ProcessStartInfo startInfo = new ProcessStartInfo();
-                // Establecer el nombre del ejecutable y los argumentos
                 startInfo.FileName = "SPECTR3.exe";
                 startInfo.Arguments = argsString;
                 startInfo.CreateNoWindow = true;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                // Redirigir la salida estándar y evitar su visualización
                 startInfo.RedirectStandardOutput = true;
-                startInfo.UseShellExecute = false; // Iniciar el proceso en segundo plano
-                Process process = Process.Start(startInfo); // Descartar la salida estándar del proceso hijo
+                startInfo.UseShellExecute = false;
+                Process process = Process.Start(startInfo);
                 //Get PID of the background process
                 pid = process.Id;
 
