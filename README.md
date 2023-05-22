@@ -277,7 +277,7 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 <!-- SCENARIOS -->
 ## Scenarios
 
-![SPECTR3-Basic](https://github.com/alpine-sec/SPECTR3/assets/143736/0005fd7b-536d-4cb7-b994-34760e544334)
+![SPECTR3-Basic]([https://github.com/alpine-sec/SPECTR3/assets/143736/0005fd7b-536d-4cb7-b994-34760e544334](https://github.com/alpine-sec/SPECTR3/blob/main/assets/SPECTR3-Basic.png))
 
 
 <!-- ROADMAP -->
