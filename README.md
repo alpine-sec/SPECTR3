@@ -237,17 +237,40 @@ C:\Users\dev\Desktop>SPECTR3.exe -d 0 -i 10.10.10.2
 
 1. Use --sshhost options. Optionally you can add sshuser, sshpass and sshport via arguments. If you want set password via argument, you need convert it to base64 (perfect for remote execution of SPECTR3):
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/143736/b492abf5-b996-475a-bbaf-aa34b7907980)
+```
+C:\Users\dev\Desktop>SPECTR3.exe -d 0 --sshhost 172.29.10.41
+  - SSH Username: admuser
+  - SSH Password: *************
+  - SPECTR3 Server running at 127.0.0.1:3262
+    + Target IQN: iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0
+    + Access Permited from: 127.0.0.1
+  - Press ENTER key to stop sharing and close server ...
+  - Connecting to SSH server ...
+    + SSH tunnel successfully connected to 172.29.10.41:22
+    + SSH connection state: Connected
+ ```
 
 2. You can see the remote login and the iSCSI port in the remote machine:
-
-![image](https://github.com/alpine-sec/SPECTR3/assets/143736/373c3b77-5616-4abc-a3de-254adc1d2c33)
-
-![image](https://github.com/alpine-sec/SPECTR3/assets/143736/5bd275f3-50bc-49e0-8284-289e262ce395)
+```
+May 22 08:31:04 lindev sshd[1131]: Accepted password for admuser from 172.29.10.42 port 49928 ssh2
+May 22 08:31:04 lindev sshd[1131]: pam_unix(sshd:session): session opened for user admuser(uid=1000) by (uid=0)
+May 22 08:31:04 lindev systemd-logind[692]: New session 4 of user admuser.
+```
+```
+admuser@lindev:~$ netstat -tulpna | grep 3262
+(Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.)
+tcp        0      0 127.0.0.1:3262          0.0.0.0:*               LISTEN      -
+tcp6       0      0 ::1:3262                :::*                    LISTEN      -
+```
 
 3. Show target in localhost and exported port:
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/143736/a75606e6-c5c1-4a9d-8265-64667d102f61)
+```
+admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
+[sudo] password for admuser:
+[localhost]:3262,-1 iqn.2023-05.io.alpine.desktop-j4r9lju:dsk0
+```
 
 4. Connect target as usual.
 
