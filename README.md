@@ -57,7 +57,7 @@ Copy portable executable of **SPECTR3** to the endpoint where you want to perfor
 
 ### Command Line Options
 ```
-SPECTR3 v0.5 - Remote acquisition and forensic tool by Alpine Security
+SPECTR3 v0.6 - Remote acquisition and forensic tool by Alpine Security
 Usage: SPECTR3.exe [options]
 Options:
   -l, --list
@@ -72,6 +72,8 @@ Options:
     Set the volume to share.
   -d, --disk
     Set the disk to share.
+  -t, --timeout
+    Stop the service if the configured number of MINUTES without activity elapses. Ex. -t 60 (60 min)
   -h, --help
     Print this help message.
   --sshuser
