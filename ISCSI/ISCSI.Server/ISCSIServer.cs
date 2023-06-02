@@ -20,7 +20,12 @@ namespace ISCSI.Server
     /// </summary>
     public partial class ISCSIServer
     {
-        public const int DefaultPort = 3260;
+        public const int DefaultPort = 3262;
+
+        public static bool toactivate = false;
+        public static bool toswitch = false;
+        public static int toinitvalue;
+        public static int toglobal;
 
         private Socket m_listenerSocket;
         private bool m_listening;
@@ -148,10 +153,28 @@ namespace ISCSI.Server
             if (state.ConnectionParameters.InitiatorEndPoint.Address.Equals(PermitedIP))
             {
                 Console.WriteLine("    + Client Connected from " + state.ConnectionParameters.InitiatorEndPoint.Address);
+                // If timeout is activated and a client is connected,
+                // put switch to false and reset de global counter
+                if (toactivate)
+                {
+                    toswitch = false;
+                    toglobal = toinitvalue;
+                    Console.WriteLine("    + Timeout Stopped");
+                }
+
             }
             else if (PermitedIP.ToString() == "0.0.0.0" )
             {
                 Console.WriteLine("    + Client Connected from " + state.ConnectionParameters.InitiatorEndPoint.Address);
+                // If timeout is activated and a client is connected,
+                // put switch to false and reset de global counter
+                if (toactivate)
+                {
+                    toswitch = false;
+                    toglobal = toinitvalue;
+                    Console.WriteLine("    + Timeout Stopped");
+                }
+
             }
             else
             {
@@ -287,6 +310,14 @@ namespace ISCSI.Server
         {
             m_connectionManager.ReleaseConnection(state);
             Console.WriteLine("    + Client Disconnected from " + state.ConnectionParameters.InitiatorEndPoint.Address);
+            // If timeout is activated and a client disconnects,
+            // put switch to true for activate the timeout counter
+            if (toactivate)
+            {
+                toswitch = true;
+                Console.WriteLine("    + Timeout Re-activated");
+            }
+
             if (state.Session != null)
             {
                 List<ConnectionState> connections = m_connectionManager.GetSessionConnections(state.Session);

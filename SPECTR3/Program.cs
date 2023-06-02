@@ -47,6 +47,8 @@ namespace SPECTR3
             Console.WriteLine("    Set the volume to share.");
             Console.WriteLine("  -d, --disk");
             Console.WriteLine("    Set the disk to share.");
+            Console.WriteLine("  -t, --timeout");
+            Console.WriteLine("    Stop the service if the configured number of MINUTES without activity elapses. Ex. -t 60 (60 min)");
             Console.WriteLine("  -h, --help");
             Console.WriteLine("    Print this help message.");
             Console.WriteLine("  --sshuser");
@@ -78,15 +80,17 @@ namespace SPECTR3
 
             string thisport;
             string thissshport;
+            string thistimeout;
 
             int port = 3262;
             int sshport = 22;
+            int timeout = 0;
             int pid;
 
             List<string> validargs = new List<string>()
                  { "--list", "--port", "--permitip", "--bindip", "--volume", "--disk", "--help", "--sshuser",
-                   "--sshpass", "--sshhost", "--sshport", "--daemon", "-l", "-p", "-i", "-b", "-h", "-v",
-                   "-d", "-o"};
+                   "--sshpass", "--sshhost", "--sshport", "--daemon", "--timeout", "-l", "-p", "-i", "-b",
+                   "-h", "-v", "-d", "-o", "-t"};
 
             if (!SP3UTILS.SecurityHelper.IsAdministrator())
             {
@@ -232,6 +236,23 @@ namespace SPECTR3
                     if (!string.IsNullOrEmpty(thissshport))
                     {
                         sshport = Conversion.ToInt32(thissshport);
+                    }
+                    else
+                    {
+                        Console.WriteLine("  - ERROR: Argument cannot be empty: " + args[i]);
+                        return 1;
+                    }
+                }
+                if (arg == "--timeout" || arg == "-t")
+                {
+                    thistimeout = args[i + 1];
+                    if (!string.IsNullOrEmpty(thistimeout))
+                    {
+                        timeout = Conversion.ToInt32(thistimeout);
+                        //Convert timeout from min to seconds
+                        timeout *= 60;
+                        ISCSIServer.toactivate = true;
+                        ISCSIServer.toinitvalue = timeout;
                     }
                     else
                     {
@@ -470,6 +491,13 @@ namespace SPECTR3
             Console.WriteLine("    + Target IQN: " + txtTargetIQN);
             Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
 
+            if (ISCSIServer.toactivate)
+            {
+                Console.WriteLine("    + Timeout: " + timeout + " seconds");
+                ISCSIServer.toglobal = timeout;
+                ISCSIServer.toswitch = true;
+            }
+
             //Start Server
             Sp3Server sp3Server = new Sp3Server(m_server, serverAddress, port, permitedAddress,
                                     sshhost, sshport, sshuser, sshpass);
@@ -491,6 +519,16 @@ namespace SPECTR3
                 {
                     sp3Server.StopServer();
                     return 0;
+                }
+                //if timeout is set, subtract 2 seconds to ISCSIServer.toglobal
+                if (ISCSIServer.toswitch)
+                {
+                    if (ISCSIServer.toglobal == 0)
+                    {
+                        sp3Server.StopServer();
+                        return 0;
+                    }
+                    ISCSIServer.toglobal -= 2;
                 }
                 Thread.Sleep(2000);
             }

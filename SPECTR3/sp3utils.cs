@@ -15,7 +15,6 @@ namespace SPECTR3
 {
     public class SP3DSK
     {
-
         public static void ShowDiskAndVolumes()
         {
             List<string> volstr;
