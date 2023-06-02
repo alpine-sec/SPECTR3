@@ -116,23 +116,26 @@ Press ENTER for sharing termination
 In Windows Investigator machines you can use the windows native tool iSCSI Initiator:
 1. Discover targets with "Discover Portal" in "Discovery Tab":
 
-![image](https://user-images.githubusercontent.com/143736/236651296-daa10bd4-9f14-4683-83b0-91a7cc49eae1.png)
+![win01](https://github.com/alpine-sec/SPECTR3/assets/143736/3950442b-ec66-4989-800f-3704ebb73134)
 
 2. Use Spectr3 server IP and Port:
 
-![image](https://user-images.githubusercontent.com/143736/236651365-441f5394-b99f-4148-8e3a-f82d7c0a86c6.png)
+![win02](https://github.com/alpine-sec/SPECTR3/assets/143736/2229a494-e36c-4072-ad1a-dabd9466964e)
+
 
 3. Connect to target in "Targets" tab:
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/143736/aaefcd2f-3b87-4876-96da-394302d1aed4)
+![win03](https://github.com/alpine-sec/SPECTR3/assets/143736/a8b7d39e-4d5c-478a-9254-a6693a4e1f2f)
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/143736/98873058-f912-4b53-a638-1370a419e4f1)
+![win04](https://github.com/alpine-sec/SPECTR3/assets/143736/7ea41776-4068-493c-9d15-60eb5ce39fbf)
+
 
 4. Acquire or analyze with your favorite tool:
 
-![image](https://user-images.githubusercontent.com/143736/236651568-e81c4c1a-62fd-45ee-8858-377c5a33ae7d.png)
+![win05](https://github.com/alpine-sec/SPECTR3/assets/143736/66e3a3b7-a629-4389-9641-297fd50624d6)
 
-![image](https://user-images.githubusercontent.com/143736/236651589-1f187867-5230-4668-bf29-af5f414c049a.png)
+![win06](https://github.com/alpine-sec/SPECTR3/assets/143736/fde96dee-d5a7-4c41-b94f-f77e5b49166d)
+
 
 ```
 C:\kape> .\kape.exe --tsource G: --tdest C:\Triages\RegistryFiles --target RegistryHives
@@ -198,25 +201,25 @@ https://www.kernsafe.com/product/macos-iscsi-initiator.aspx
 
 1. Discover targets with "Discover" and Discover Menu:
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/41c733c6-a95d-42b7-a981-d29c3da813d2)
+![osx01](https://github.com/alpine-sec/SPECTR3/assets/143736/522dc464-b76e-49e2-b5f2-2a69a8f660c6)
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/c7f8a60c-4540-4095-998c-14b66b47ee95)
+![osx02](https://github.com/alpine-sec/SPECTR3/assets/143736/0211cbbe-712a-4cb0-8716-9b549221b86c)
 
 2. Use Spectr3 server IP and Port:
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/13ca7eb6-46b3-4ca5-a909-c1f00d6f4607)
+![osx03](https://github.com/alpine-sec/SPECTR3/assets/143736/0d8af011-1433-4ac6-a677-6d6eb11ac1a3)
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/f213594f-28ae-492b-aec2-4d5b4e2c0620)
+![osx04](https://github.com/alpine-sec/SPECTR3/assets/143736/84c80c34-8c84-4f0d-8b26-74b8445d6a96)
 
 3. Connect to target:
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/622a866a-5a57-43de-af20-2e40c6332120)
+![osx06](https://github.com/alpine-sec/SPECTR3/assets/143736/257aaa4f-336e-43b9-87b0-f164071529b5)
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/71ef738c-e655-4aec-b5e1-1d022e7bc879)
+![osx07](https://github.com/alpine-sec/SPECTR3/assets/143736/17a9eb9c-fafd-46c1-8646-3854634793e9)
 
 4. Acquire or analyze with your favorite tool:
 
-![image](https://github.com/alpine-sec/SPECTR3/assets/39518955/7daa7ecb-392b-4347-9721-0cb6ec033663)
+![osx08](https://github.com/alpine-sec/SPECTR3/assets/143736/f9519e38-874d-4790-9b32-bf66da541038)
 
 5. **Disconnect when finish:**
 
@@ -277,7 +280,8 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 <!-- SCENARIOS -->
 ## Scenarios
 
-![SPECTR3-Basic](https://github.com/alpine-sec/SPECTR3/assets/143736/0005fd7b-536d-4cb7-b994-34760e544334)
+![SPECTR3-Basic](https://github.com/alpine-sec/SPECTR3/assets/143736/406037df-7b52-4f67-9e7b-98f4921a7f01)
+
 
 
 <!-- ROADMAP -->
