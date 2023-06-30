@@ -300,55 +300,8 @@ namespace SPECTR3
             {
                 serverAddress = IPAddress.Loopback;
                 permitedAddress = IPAddress.Loopback;
-            
-                if (string.IsNullOrEmpty(sshuser))
-                {
-                    //get sshuser by prompt
-                    Console.Write("  - SSH Username: ");
-                    sshuser = Console.ReadLine();
-                }
 
-                if (string.IsNullOrEmpty(sshpass))
-                {
-                    //get sshuser by prompt
-                    Console.Write("  - SSH Password: ");
-                    ConsoleKeyInfo keyInfo;
-                    do
-                    {
-                        keyInfo = Console.ReadKey(true);
-                        // Skip if Backspace or Enter is Pressed
-                        if (keyInfo.Key != ConsoleKey.Backspace && keyInfo.Key != ConsoleKey.Enter)
-                        {
-                            sshpass += keyInfo.KeyChar;
-                            Console.Write("*");
-                        }
-                        else
-                        {
-                            if (keyInfo.Key == ConsoleKey.Backspace && sshpass.Length > 0)
-                            {
-                                // Remove last character if Backspace is Pressed
-                                sshpass = sshpass.Substring(0, (sshpass.Length - 1));
-                                Console.Write("\b \b");
-                            }
-                        }
-                    }
-                    // Stops Getting Password Once Enter is Pressed
-                    while (keyInfo.Key != ConsoleKey.Enter);
-                }
-                else
-                {
-                    //Check if sshpass is base64 encoded
-                    if (SP3UTILS.IsBase64String(sshpass))
-                    {
-                        sshpass = SP3UTILS.Base64Decode(sshpass).TrimEnd('\r', '\n'); ;
-                    }
-                    else
-                    {
-                        Console.WriteLine("    + Error: SSH Password is not base64 encoded");
-                        return 1;
-                    }
-
-                }
+                (sshuser, sshpass) = SP3UTILS.GetSshUserAndPassword(sshuser, sshpass);
             }
             else
             {
@@ -385,8 +338,8 @@ namespace SPECTR3
 
 
             ISCSIServer m_server = new ISCSIServer(permitedAddress);
-            string drivename = String.Empty;
 
+            string drivename = String.Empty;
             //Initialize m_disk with the selected volume or disk
             if (!string.IsNullOrEmpty(thisvolume))
             {

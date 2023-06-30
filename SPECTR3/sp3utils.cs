@@ -236,6 +236,60 @@ namespace SPECTR3
             double num = Math.Round(bytes / Math.Pow(1024, place), 1);
             return (Math.Sign(byteCount) * num).ToString() + suf[place];
         }
+
+        public static (string, string) GetSshUserAndPassword(string sshuser = null, string sshpass = null)
+        {
+            if (string.IsNullOrEmpty(sshuser))
+            {
+                //get sshuser by prompt
+                Console.Write("  - SSH Username: ");
+                sshuser = Console.ReadLine();
+            }
+
+            if (string.IsNullOrEmpty(sshpass))
+            {
+                //get sshuser by prompt
+                Console.Write("  - SSH Password: ");
+                ConsoleKeyInfo keyInfo;
+                do
+                {
+                    keyInfo = Console.ReadKey(true);
+                    // Skip if Backspace or Enter is Pressed
+                    if (keyInfo.Key != ConsoleKey.Backspace && keyInfo.Key != ConsoleKey.Enter)
+                    {
+                        sshpass += keyInfo.KeyChar;
+                        Console.Write("*");
+                    }
+                    else
+                    {
+                        if (keyInfo.Key == ConsoleKey.Backspace && sshpass.Length > 0)
+                        {
+                            // Remove last character if Backspace is Pressed
+                            sshpass = sshpass.Substring(0, (sshpass.Length - 1));
+                            Console.Write("\b \b");
+                        }
+                    }
+                }
+                // Stops Getting Password Once Enter is Pressed
+                while (keyInfo.Key != ConsoleKey.Enter);
+            }
+            else
+            {
+                //Check if sshpass is base64 encoded
+                if (SP3UTILS.IsBase64String(sshpass))
+                {
+                    sshpass = SP3UTILS.Base64Decode(sshpass).TrimEnd('\r', '\n'); ;
+                }
+                else
+                {
+                    Console.WriteLine("    + Error: SSH Password is not base64 encoded");
+                    Environment.Exit(1);
+                }
+            }
+
+            return (sshuser, sshpass);
+        }
+
     }
     public class SP3NET
     {
