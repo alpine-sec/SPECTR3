@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using DiskAccessLibrary;
 using DiskAccessLibrary.LogicalDiskManager;
 using DiskAccessLibrary.Win32;
+using System.Reflection;
 
 namespace SPECTR3
 {
@@ -32,6 +33,38 @@ namespace SPECTR3
                 Console.WriteLine(vol);
             }
         }
+
+        public static PhysicalDisk GetDiskByIndex(int diskIndex)
+        {
+            PhysicalDisk selectedDisk = null;
+            List<PhysicalDisk> physicalDisks = PhysicalDiskHelper.GetPhysicalDisks();
+            foreach (PhysicalDisk physicalDisk in physicalDisks)
+            {
+                if (physicalDisk.PhysicalDiskIndex == diskIndex)
+                {
+                    selectedDisk = new PhysicalDisk(physicalDisk.PhysicalDiskIndex, true);
+                    break;
+                }
+            }
+            return selectedDisk;
+        }
+
+        public static VolumeDisk GetVolumeByIndex(int volindex)
+        {
+            VolumeDisk volumeDisk = null;
+            List<Volume> volumes = WindowsVolumeHelper.GetVolumes();
+            for (int index = 0; index < volumes.Count; index++)
+            {
+                if (index == volindex)
+                {
+                    Volume volume = volumes[index];
+                    volumeDisk = new VolumeDisk(volume, true);
+                    break;
+                }
+            }
+            return volumeDisk;
+        }
+
 
         static List<string> DiskList()
         {

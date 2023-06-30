@@ -21,6 +21,7 @@ using Utilities;
 using ISCSI.Server;
 using System.Threading;
 using System.Diagnostics;
+using static SPECTR3.SP3DSK;
 
 namespace SPECTR3
 {
@@ -336,7 +337,6 @@ namespace SPECTR3
                 }
             }
 
-
             ISCSIServer m_server = new ISCSIServer(permitedAddress);
 
             string drivename = String.Empty;
@@ -345,36 +345,17 @@ namespace SPECTR3
             {
                 int volindex = Conversion.ToInt32(thisvolume);
                 drivename = String.Format("vol{0}", thisvolume);
-                SP3DSK.VolumeDisk volumeDisk;
-                List<Volume> volumes = WindowsVolumeHelper.GetVolumes();
-                for (int index = 0; index < volumes.Count; index++)
-                {
-                    if (index == volindex)
-                    {
-                        Volume volume = volumes[index];
-                        volumeDisk = new SP3DSK.VolumeDisk(volume, true);
-                        // Add the volume to the list of disks to share
-                        m_disks.Add(volumeDisk);
-                        break;
-                    }
-                }
+                VolumeDisk volume = SP3DSK.GetVolumeByIndex(volindex);
+                m_disks.Add(volume);
             }
             else if (!string.IsNullOrEmpty(thisdisk))
             {
                 int dskindex = Conversion.ToInt32(thisdisk);
                 drivename = String.Format("dsk{0}", thisdisk);
-                PhysicalDisk selectedDisk;
-                List<PhysicalDisk> physicalDisks = PhysicalDiskHelper.GetPhysicalDisks();
-                foreach (PhysicalDisk physicalDisk in physicalDisks)
-                {
-                    if (physicalDisk.PhysicalDiskIndex == dskindex)
-                    {
-                        selectedDisk = new PhysicalDisk(physicalDisk.PhysicalDiskIndex, true);
-                        m_disks.Add(selectedDisk);
-                        break;
-                    }
-                }
+                PhysicalDisk disk = SP3DSK.GetDiskByIndex(dskindex);
+                m_disks.Add(disk);
             }
+
             String Hostname = Dns.GetHostName().ToLower();
             if (string.IsNullOrEmpty(Hostname))
             {
