@@ -282,7 +282,7 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 
 ### SPECTR3 for Linux
 SPECTR3 for linux works as a wrapper for the https://github.com/fujita/tgt project and uses the tgtd and tgtadmin binaries. Both binaries are embedded in the portable version.
-'''
+```
 usage: spectr3 [-h] [-V] [-l] [-p PORT] [-i PERMITIP] [-b BINDIP] [-d DEVICE] [--daemon]
 
 SPECTR3 v0.1 Linux - Remote acquisition and forensic tool by Alpine Security
@@ -299,7 +299,7 @@ options:
   -d DEVICE, --device DEVICE
                         Set device to share.
   --daemon              Run SPECTR3 as background unattended process.
-'''
+```
 
 <!-- SCENARIOS -->
 ## Scenarios
