@@ -31,6 +31,7 @@
         <li><a href="#Connect-to-a-SPECTR3-iSCSI-target-with-OSx">Connect to a SPECTR3 iSCSI target with OSx</a></li>
         <li><a href="#Improved-security-through-IP-ACLs">Improved security through IP ACLs</a></li>
         <li><a href="#Encrypt-connection-over-reverse-SSH">Encrypt connection over reverse SSH</a></li>
+        <li><a href="#SPECTR3-for-Linux">SPECTR3 for Linux</a></li>
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -279,7 +280,7 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 
 4. Connect target as usual.
 
-### SPECTR3 for Linux (Alpha version WIP)
+### SPECTR3 for Linux
 SPECTR3 for linux works as a wrapper for the https://github.com/fujita/tgt project and uses the tgtd and tgtadmin binaries. Both binaries are embedded in the portable version.
 '''
 usage: spectr3 [-h] [-V] [-l] [-p PORT] [-i PERMITIP] [-b BINDIP] [-d DEVICE] [--daemon]
