@@ -1,2 +1,4 @@
 blkinfo
 pyinstaller
+netifaces
+wheel
