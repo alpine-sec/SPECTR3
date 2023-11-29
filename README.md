@@ -301,6 +301,7 @@ options:
                         Set device to share.
   --daemon              Run SPECTR3 as background unattended process.
 ```
+NOTE: In Centos7/RHEL remember open allow port. Ex: sudo firewall-cmd --zone=public --add-port=3262/tcp
 
 Compile linux portable
 ```
