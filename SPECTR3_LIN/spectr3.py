@@ -1,4 +1,28 @@
 #!/usr/bin/env python3
+#
+# spectr3.py
+#
+# (c) Authors: Miguel Quero (Based in TGT Project https://github.com/fujita/tgt)
+# e-mail: motrilwireless@gmail.com
+# Company: Alpine Security
+#
+# ***************************************************************
+#
+# The license below covers all files distributed with infofile unless 
+# otherwise noted in the file itself.
+#
+# This program is free software: you can redistribute it and/or 
+# modify it under the terms of the GNU General Public License as 
+# published by the Free Software Foundation, version 3.
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program. If not, see <https://www.gnu.org/licenses/>. 
+#
 
 import os
 import re
@@ -172,8 +196,8 @@ def start_tgt_server(bindip, port):
     # Start tgtd
     print("  - Starting TGTD...")
     # Run sudo tgtd with subprocess
-    #portal = "portal={}:{}".format(bindip, port)
-    portal = "portal=0.0.0.0:{}".format(port)
+    portal = "portal={}:{}".format(bindip, port)
+    #portal = "portal=0.0.0.0:{}".format(port)
     tgtd = subprocess.Popen(["sudo", tgtd_path,"-d", "1", "--iscsi", portal])
     time.sleep(2)
     # Check if tgtd is running
