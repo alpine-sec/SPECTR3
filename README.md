@@ -31,6 +31,7 @@
         <li><a href="#Connect-to-a-SPECTR3-iSCSI-target-with-OSx">Connect to a SPECTR3 iSCSI target with OSx</a></li>
         <li><a href="#Improved-security-through-IP-ACLs">Improved security through IP ACLs</a></li>
         <li><a href="#Encrypt-connection-over-reverse-SSH">Encrypt connection over reverse SSH</a></li>
+        <li><a href="#SPECTR3-for-Linux">SPECTR3 for Linux</a></li>
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -279,6 +280,37 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 
 4. Connect target as usual.
 
+### SPECTR3 for Linux
+[**DOWNLOAD EXECUTABLE**](https://github.com/alpine-sec/SPECTR3/releases/tag/v0.7)
+SPECTR3 for linux works as a wrapper for the https://github.com/fujita/tgt project and uses the tgtd and tgtadmin binaries. Both binaries are embedded in the portable version.
+```
+usage: spectr3 [-h] [-V] [-l] [-p PORT] [-i PERMITIP] [-b BINDIP] [-d DEVICE] [--daemon]
+
+SPECTR3 v0.1 Linux - Remote acquisition and forensic tool by Alpine Security
+
+options:
+  -h, --help            show this help message and exit
+  -V, --version         show program's version number and exit
+  -l, --list            List available volumes and disks.
+  -p PORT, --port PORT  Set port to listen on.
+  -i PERMITIP, --permitip PERMITIP
+                        Set the permited ip client to connect.
+  -b BINDIP, --bindip BINDIP
+                        Set the bind ip to listen.
+  -d DEVICE, --device DEVICE
+                        Set device to share.
+  --daemon              Run SPECTR3 as background unattended process.
+```
+
+Compile linux portable
+```
+cd SPECTR3_LIN
+make
+sudo pip3 install -r requirements.txt
+pyinstaller --onefile spectr3.py --add-binary tgtd:. --add-binary tgtadm:.
+```
+
+
 <!-- SCENARIOS -->
 ## Scenarios
 
@@ -293,6 +325,7 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 - [ ] Add option to install as a service
 - [X] Add option to run as daemon in background
 - [X] Tunnelized and encrypted connections
+- [X] Linux Version
 - [ ] Multiplatform easy client
 - [ ] Others cool things...
 
