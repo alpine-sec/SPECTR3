@@ -26,23 +26,29 @@
 
 import os
 import re
+import sys
 import json
-import signal
-import argparse
-import subprocess
-import socket
 import time
+import signal
+import base64
+import socket
+import select
+import getpass
+import argparse
 import netifaces
+import subprocess
 
 from blkinfo import BlkDiskInfo
 
-VERSION="0.1"
+
+
+VERSION="0.2"
 INSTALL_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_args():
     argparser = argparse.ArgumentParser(
-        description='SPECTR3 v0.1 Linux - Remote acquisition and forensic tool by Alpine Security')
+        description='SPECTR3 Linux v{} - Remote acquisition and forensic tool by Alpine Security'.format(VERSION))
 
     argparser.add_argument('-V', '--version',
                             action='version', 
@@ -73,13 +79,23 @@ def get_args():
     argparser.add_argument('-d', '--device',
                             required=False,
                             action='store',
-                            help='Set device to share.')
+                            help='Set device to share. Ex: -d sda1 (without /dev/)')
+    
+    argparser.add_argument('--chapuser',
+                            required=False,
+                            action='store',
+                            help='Set CHAP username. Ex: --chapuser admin')
+
+    argparser.add_argument('--chappass',
+                            required=False,
+                            action='store',
+                            help='Set CHAP password in BASE64 with minimal password size of 12. Ex: --chappass QWxwaW5lU2VjdXJpdHk=')
 
     argparser.add_argument('--daemon',
                             required=False,
                             action='store_true',
                             default=False,
-                            help='Run SPECTR3 as background unattended process.')
+                            help='Run SPECTR3 as background unattended process. NOTE: Manually kill by PID needed.')
 
     args = argparser.parse_args()
 
@@ -213,9 +229,21 @@ def start_tgt_server(bindip, port):
     print()
     return int(tgtd_pid)
 
+def stop_tgt_server(tgtdpid):
+    print()
+    print("    + Stopping SPECTR3...")
+    print("    + Stopping TGTD...")
+    # Stop tgtd
+    check_kill = kill_process(tgtdpid)
+    time.sleep(5)
+    # Check if tgtd is running
+    if not check_kill:
+        print("    + ERROR: TGTD failed to stop.")
+        return False
+    print("    + TGTD stopped successfully.")
+    print()
 
-def spectr3_start(port, permitip, bindip, device, daemon):
-
+def spectr3_start(port, permitip, bindip, device, daemon, chapuser, chappass, tgtdpid):
     # Configure targets
     hostname = get_hostname()
     targetname = "iqn.2023-05.io.alpine.{hostname}:{device}".format(hostname=hostname, device=device)
@@ -262,52 +290,81 @@ def spectr3_start(port, permitip, bindip, device, daemon):
                                "--tid", "1", "--lun", "1", "--params", "readonly=1,vendor_id={},product_id={}".format(vendor, model)])
     time.sleep(1)
 
+    # Set CHAP authentication.
+    if chapuser:
+        print("    + Setting CHAP authentication...")
+        if not chappass:
+            chappass = getpass.getpass("      - Enter CHAP password: ")
+
+        if chappass:
+            # Create CHAP user
+            tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "new", "--mode", "account", "--user", chapuser, "--password", chappass])
+            time.sleep(1)
+            # Add CHAP user to target
+            tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "bind", "--mode", "account", "--tid", "1", "--user", chapuser])
+            time.sleep(1)
+
     connected_ips = []
     print()
     print(f"  - SPECTR3 Server running at {bindip}:{port}")
+    print(f"    + Target IQN: {targetname}")
+    print(f"    + Target ACL: {permitip}")
     if not daemon:
+        print(f"  - Press ENTER key to stop sharing and close server ...")
         while True:
-            ips = []
-            # Check if a new initiator is connected
-            check_initiator = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "show",
-                                                "--mode", "target"], stdout=subprocess.PIPE)
-            check_initiator.wait()
+            try:
+                ips = []
+                # Check if a new initiator is connected
+                check_initiator = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "show",
+                                                    "--mode", "target"], stdout=subprocess.PIPE)
+                check_initiator.wait()
 
-            # Process the output to check if a new initiator is connected
-            output = check_initiator.communicate()[0]
-            output = output.decode("utf-8")
+                # Process the output to check if a new initiator is connected
+                output = check_initiator.communicate()[0]
+                output = output.decode("utf-8")
 
-            # Check if "IP Address" is in output
-            if "IP Address" in output:
-                # Split output by line
-                output = output.split("\n")
-                # Iterate over lines
-                for line in output:
-                    # Check if "IP Address" is in line
-                    if "IP Address" in line:
-                        # Split line by space
-                        line = line.split(" ")
-                        # Iterate over line
-                        for word in line:
-                            # Check if word is an IP Address
-                            if re.search(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", word):
-                                ipaddress = word
-                                ips.append(ipaddress)
-                                if word not in connected_ips:
-                                    print("    + Client Connected from: {}".format(word))
-                                    connected_ips.append(word)
+                # Check if "IP Address" is in output
+                if "IP Address" in output:
+                    # Split output by line
+                    output = output.split("\n")
+                    # Iterate over lines
+                    for line in output:
+                        # Check if "IP Address" is in line
+                        if "IP Address" in line:
+                            # Split line by space
+                            line = line.split(" ")
+                            # Iterate over line
+                            for word in line:
+                                # Check if word is an IP Address
+                                if re.search(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", word):
+                                    ipaddress = word
+                                    ips.append(ipaddress)
+                                    if word not in connected_ips:
+                                        print("    + Client Connected from: {}".format(word))
+                                        connected_ips.append(word)
 
-            if len(connected_ips) != len(ips):
-                # remove ips that are not connected anymore
-                for ip in connected_ips:
-                    if ip not in ips:
-                        print("    + Client Disconnected from: {}".format(ip))
-                        connected_ips.remove(ip)
+                if len(connected_ips) != len(ips):
+                    # remove ips that are not connected anymore
+                    for ip in connected_ips:
+                        if ip not in ips:
+                            print("    + Client Disconnected from: {}".format(ip))
+                            connected_ips.remove(ip)
 
-            time.sleep(5)  # Wait for 1 second before checking again
+                time.sleep(5)  # Wait for 5 second before checking again
+                # Check if user pressed ENTER key
+                if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+                    line = input()
+                    stop_tgt_server(tgtdpid)
+                    break
+            except KeyboardInterrupt:
+                stop_tgt_server(tgtdpid)
+                return True
+
+            except Exception as e:
+                print("  - SPECTR3 ERROR: {}".format(e))
+                stop_tgt_server(tgtdpid)
     else:
         return True
-
 
 def main():
     args, argparser = get_args()
@@ -317,6 +374,13 @@ def main():
     bindip = args.bindip
     device = args.device
     daemon = args.daemon
+    chapuser = args.chapuser
+    chappass = args.chappass
+
+    # Check if root permissions
+    if os.geteuid() != 0:
+        print("  - ERROR: You must run this script as root.")
+        return 1
 
     if showdevices:
         list_devices()
@@ -334,39 +398,29 @@ def main():
     if not bindip:
         bindip = get_main_ip_address()
     
-    # Check if root permissions
-    if os.geteuid() != 0:
-        print("  - ERROR: You must run this script as root.")
-        return 1
-    
     if not device:
         print("  - ERROR: You must specify a device to share.")
         # Print help
         print(argparser.print_help())
         return 1
-    
+
+    if chapuser and chappass:
+        #decode base64 chappass
+        chappass = base64.b64decode(chappass).decode("utf-8")
+        chappass = str(chappass)
+        if len(chappass) < 12 or len(chappass) > 16:
+            print("  - ERROR: CHAP password must be at least 12 characters and maximum 16 characters.")
+            return 1
+
     # Start TGT Server
     tgtdpid = start_tgt_server(bindip, port)
     if not tgtdpid:
+        print ("  - ERROR: Failed to start TGTD.")
         return 1
 
     # Run SPECTR3
-    try:
-        spectr3_start(port, permitip, bindip, device, daemon)
-    except KeyboardInterrupt:
-        print()
-        print("    + Stopping SPECTR3...")
-        print("    + Stopping TGTD...")
-        # Stop tgtd
-        check_kill = kill_process(tgtdpid)
-        time.sleep(5)
-        # Check if tgtd is running
-        if not check_kill:
-            print("    + ERROR: TGTD failed to stop.")
-            return False
-        print("    + TGTD stopped successfully.")
-        print()
-        return 0
+    spectr3_start(port, permitip, bindip, device, daemon, chapuser, chappass, tgtdpid)
+    return 0
 
 if __name__ == '__main__':
     main()
