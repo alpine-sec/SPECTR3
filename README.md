@@ -284,9 +284,10 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 [**DOWNLOAD EXECUTABLE**](https://github.com/alpine-sec/SPECTR3/releases/tag/v0.7)
 SPECTR3 for linux works as a wrapper for the https://github.com/fujita/tgt project and uses the tgtd and tgtadmin binaries. Both binaries are embedded in the portable version.
 ```
-usage: spectr3 [-h] [-V] [-l] [-p PORT] [-i PERMITIP] [-b BINDIP] [-d DEVICE] [--daemon]
+usage: spectr3 [-h] [-V] [-l] [-p PORT] [-i PERMITIP] [-b BINDIP] [-d DEVICE] [--chapuser CHAPUSER]
+               [--chappass CHAPPASS] [--daemon]
 
-SPECTR3 v0.1 Linux - Remote acquisition and forensic tool by Alpine Security
+SPECTR3 Linux v0.2 - Remote acquisition and forensic tool by Alpine Security
 
 options:
   -h, --help            show this help message and exit
@@ -298,8 +299,12 @@ options:
   -b BINDIP, --bindip BINDIP
                         Set the bind ip to listen.
   -d DEVICE, --device DEVICE
-                        Set device to share.
-  --daemon              Run SPECTR3 as background unattended process.
+                        Set device to share. Ex: -d sda1 (without /dev/)
+  --chapuser CHAPUSER   Set CHAP username. Ex: --chapuser admin
+  --chappass CHAPPASS   Set CHAP password in BASE64 with minimal password size of 12. Ex: --chappass
+                        QWxwaW5lU2VjdXJpdHk=
+  --daemon              Run SPECTR3 as background unattended process. NOTE: Manually kill by PID
+                        needed.
 ```
 NOTE: In Centos7/RHEL remember open allow port. Ex: sudo firewall-cmd --zone=public --add-port=3262/tcp
 
