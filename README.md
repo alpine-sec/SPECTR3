@@ -44,7 +44,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This project is based on the great work done by TalAloni with iSCSI Console but with a forensic objective more similar to F-Response in its approach to remote acquisition, analysis and triage.
+This project is based on the great work done by TalAloni with iSCSI Console (windows version) and Fujita with TGT project (linux version) but with a forensic objective more similar to F-Response in its approach to remote acquisition, analysis and triage.
 
 The goal is to make available to the community a command line, open source and easy to use tool for scenarios where a complete forensic acquisition or a fast remote analysis is needed.
 
