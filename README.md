@@ -359,7 +359,7 @@ pyinstaller --onefile spectr3.py --add-binary tgtd:. --add-binary tgtadm:.
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Add option to share all drives in different targets
+- [X] Add option to share all drives in different targets
 - [ ] Add option to install as a service
 - [X] Add option to run as daemon in background
 - [X] Tunnelized and encrypted connections
