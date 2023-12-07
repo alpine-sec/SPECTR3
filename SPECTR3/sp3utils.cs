@@ -34,6 +34,18 @@ namespace SPECTR3
             }
         }
 
+        public static bool IsDiskIndexValid(int diskIndex)
+        {
+            List<PhysicalDisk> physicalDisks = PhysicalDiskHelper.GetPhysicalDisks();
+            return physicalDisks.Any(disk => disk.PhysicalDiskIndex == diskIndex);
+        }
+
+        public static bool IsVolumeIndexValid(int volumeIndex)
+        {
+            List<Volume> volumes = WindowsVolumeHelper.GetVolumes();
+            return volumeIndex >= 0 && volumeIndex < volumes.Count;
+        }
+
         public static PhysicalDisk GetDiskByIndex(int diskIndex)
         {
             PhysicalDisk selectedDisk = null;

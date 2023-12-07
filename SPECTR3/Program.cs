@@ -22,6 +22,8 @@ using ISCSI.Server;
 using System.Threading;
 using System.Diagnostics;
 using static SPECTR3.SP3DSK;
+using DiskAccessLibrary;
+using System.Reflection;
 
 namespace SPECTR3
 {
@@ -31,9 +33,36 @@ namespace SPECTR3
 
         public const string DefaultTargetIQN = "iqn.2023-05.io.alpine";
 
+        private static int CreateISCSITarget(string drivename, List<Disk> m_disk, ISCSIServer m_server, string Hostname)
+        {
+            string txtTargetIQN;
+            if (string.IsNullOrEmpty(Hostname))
+            {
+                txtTargetIQN = String.Format("{0}:{1}", DefaultTargetIQN, drivename);
+            }
+            else
+            {
+                txtTargetIQN = String.Format("{0}.{1}:{2}", DefaultTargetIQN, Hostname, drivename);
+            }
+
+            ISCSITarget m_target = new ISCSITarget(txtTargetIQN, m_disk);
+
+            try
+            {
+                m_server.AddTarget(m_target);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine(ex.Message, "Error");
+                return 1;
+            }
+
+            return 0;
+        }
+
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.6 - Remote acquisition and forensic tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.7 - Remote acquisition and forensic tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
@@ -48,6 +77,8 @@ namespace SPECTR3
             Console.WriteLine("    Set the volume to share.");
             Console.WriteLine("  -d, --disk");
             Console.WriteLine("    Set the disk to share.");
+            Console.WriteLine("  -a, --shareall");
+            Console.WriteLine("    Share all disks.");
             Console.WriteLine("  -t, --timeout");
             Console.WriteLine("    Stop the service if the configured number of MINUTES without activity elapses. Ex. -t 60 (60 min)");
             Console.WriteLine("  -h, --help");
@@ -69,6 +100,7 @@ namespace SPECTR3
             bool list = false;
             bool thisegg = false;
             bool daemon = false;
+            bool shareall = false;
 
             string thisip = string.Empty;
             string thisbind = string.Empty;
@@ -90,8 +122,8 @@ namespace SPECTR3
 
             List<string> validargs = new List<string>()
                  { "--list", "--port", "--permitip", "--bindip", "--volume", "--disk", "--help", "--sshuser",
-                   "--sshpass", "--sshhost", "--sshport", "--daemon", "--timeout", "-l", "-p", "-i", "-b",
-                   "-h", "-v", "-d", "-o", "-t"};
+                   "--sshpass", "--sshhost", "--sshport", "--daemon", "--timeout", "--shareall", "-l", "-p",
+                   "-i", "-b", "-h", "-v", "-d", "-a", "-o", "-t"};
 
             if (!SP3UTILS.SecurityHelper.IsAdministrator())
             {
@@ -189,6 +221,11 @@ namespace SPECTR3
                     thisdisk = args[i + 1];
                 }
 
+                if (arg == "--shareall" || arg == "-a")
+                {
+                    shareall = true;
+                }
+
                 if (arg == "-o")
                 {
                     thisegg = true;
@@ -281,14 +318,13 @@ namespace SPECTR3
                 }
             }
 
-            if ((string.IsNullOrEmpty(thisvolume) && string.IsNullOrEmpty(thisdisk)) && !list)
+            if ((string.IsNullOrEmpty(thisvolume) && string.IsNullOrEmpty(thisdisk)) && !list && !shareall)
             {
                 PrintHelp();
                 return 1;
             }
 
             //Initiatize values
-            ISCSITarget m_target;
             List<Disk> m_disks = new List<Disk>();
             string txtTargetIQN;
 
@@ -338,44 +374,48 @@ namespace SPECTR3
             }
 
             ISCSIServer m_server = new ISCSIServer(permitedAddress);
+            String Hostname = Dns.GetHostName().ToLower();
 
             string drivename = String.Empty;
             //Initialize m_disk with the selected volume or disk
-            if (!string.IsNullOrEmpty(thisvolume))
+            txtTargetIQN = String.Format("Muti-Targets");
+            if (shareall)
             {
+                int dskindex = 0;
+
+                while (SP3DSK.IsDiskIndexValid(dskindex))
+                {
+                    PhysicalDisk disk = SP3DSK.GetDiskByIndex(dskindex);
+                    CreateISCSITarget(String.Format("dsk{0}", dskindex), new List<Disk>() { disk }, m_server, Hostname);
+                    dskindex++;
+                }
+            }
+            else if (!string.IsNullOrEmpty(thisvolume))
+            {
+                if (!SP3DSK.IsVolumeIndexValid(Conversion.ToInt32(thisvolume)))
+                {
+                    Console.WriteLine("  - Invalid volume index", "Error");
+                    return 1;
+                }
                 int volindex = Conversion.ToInt32(thisvolume);
                 drivename = String.Format("vol{0}", thisvolume);
                 VolumeDisk volume = SP3DSK.GetVolumeByIndex(volindex);
-                m_disks.Add(volume);
+                CreateISCSITarget(drivename, new List<Disk>() { volume }, m_server, Hostname);
+                txtTargetIQN = String.Format("{0}.{1}:{2}", DefaultTargetIQN, Hostname, drivename);
+
             }
             else if (!string.IsNullOrEmpty(thisdisk))
             {
+                if (!SP3DSK.IsDiskIndexValid(Conversion.ToInt32(thisdisk)))
+                {
+                    Console.WriteLine("  - Invalid disk index", "Error");
+                    return 1;
+                }
                 int dskindex = Conversion.ToInt32(thisdisk);
                 drivename = String.Format("dsk{0}", thisdisk);
                 PhysicalDisk disk = SP3DSK.GetDiskByIndex(dskindex);
-                m_disks.Add(disk);
-            }
-
-            String Hostname = Dns.GetHostName().ToLower();
-            if (string.IsNullOrEmpty(Hostname))
-            {
-                txtTargetIQN = String.Format("{0}:{1}", DefaultTargetIQN, drivename);
-            }
-            else
-            {
+                CreateISCSITarget(drivename, new List<Disk>() { disk }, m_server, Hostname);
                 txtTargetIQN = String.Format("{0}.{1}:{2}", DefaultTargetIQN, Hostname, drivename);
-            }
-
-            m_target = new ISCSITarget(txtTargetIQN, m_disks);
-
-            try
-            {
-                m_server.AddTarget(m_target);
-            }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine(ex.Message, "Error");
-                return 1;
             }
 
             if (port <= 0 || port > UInt16.MaxValue)
