@@ -283,7 +283,6 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 4. Connect target as usual.
 
 ### SPECTR3 for Linux
-[**DOWNLOAD EXECUTABLE**](https://github.com/alpine-sec/SPECTR3/releases/tag/v0.7.2)
 SPECTR3 for linux works as a wrapper for the https://github.com/fujita/tgt project and uses the tgtd and tgtadmin binaries. Both binaries are embedded in the portable version.
 ```
 usage: spectr3 [-h] [-V] [-l] [-p PORT] [-i PERMITIP] [-b BINDIP] [-d DEVICE] [-a]
