@@ -281,7 +281,7 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 4. Connect target as usual.
 
 ### SPECTR3 for Linux
-[**DOWNLOAD EXECUTABLE**](https://github.com/alpine-sec/SPECTR3/releases/tag/v0.7)
+[**DOWNLOAD EXECUTABLE**](https://github.com/alpine-sec/SPECTR3/releases/tag/v0.7.2)
 SPECTR3 for linux works as a wrapper for the https://github.com/fujita/tgt project and uses the tgtd and tgtadmin binaries. Both binaries are embedded in the portable version.
 ```
 usage: spectr3 [-h] [-V] [-l] [-p PORT] [-i PERMITIP] [-b BINDIP] [-d DEVICE] [--chapuser CHAPUSER]
@@ -307,6 +307,36 @@ options:
                         needed.
 ```
 NOTE: In Centos7/RHEL remember open allow port. Ex: sudo firewall-cmd --zone=public --add-port=3262/tcp
+
+Execution Example:
+```
+admuser@lintest:~$ sudo ./spectr3 -l
+- List Physical Disks:
+    + sda:  VMware, VMware Virtual S    20.0GiB
+    + sr0:  NECVMWar VMware Virtual SATA CDRW Drive    1.8GiB
+- List Volumes:
+    + sda1:                     1.0MiB
+    + sda2:     ext4    /boot   1.8GiB
+    + sda3:                     18.2GiB
+- List LVM Volumes:
+    + ubuntu-lv:        ext4    /       10.0GiB
+```
+
+```
+admuser@lintest:~$ sudo ./spectr3 -d sda2
+  - Starting TGTD...
+    + TGTD PID: 38675
+    + TGTD started successfully.
+
+  - Creating target...
+    + Adding device to target...
+    + Setting target ACL...
+    + Setting target readonly...
+
+  - SPECTR3 Server running at 192.168.202.180:3262
+    + Target IQN: iqn.2023-05.io.alpine.lintest:sda2
+    + Target ACL: ALL
+```
 
 Compile linux portable
 ```
