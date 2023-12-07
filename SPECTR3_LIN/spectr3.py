@@ -286,6 +286,21 @@ def spectr3_start(port, permitip, bindip, devices, daemon, chapuser, chappass, t
     hostname = get_hostname()
     tgtadm_path = os.path.join(INSTALL_PATH, "tgtadm")
 
+    # Set CHAP authentication.
+    if chapuser:
+        print("  - Setting CHAP authentication...")
+        if not chappass:
+            chappass = getpass.getpass("      - Enter CHAP password: ")
+
+        if chappass:
+            # Create CHAP user
+            tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "new", "--mode", "account",
+                                       "--user", chapuser, "--password", chappass])
+            time.sleep(1)
+        else:
+            print("      - ERROR: CHAP password cannot be empty.")
+            return False
+
     for device in devices:
         targetname = "iqn.2023-05.io.alpine.{hostname}:{device}".format(hostname=hostname, device=device)
         vendor = "SPECTR3"
@@ -295,7 +310,7 @@ def spectr3_start(port, permitip, bindip, devices, daemon, chapuser, chappass, t
         devicepath = locate_block_device(device)
         if not devicepath:
             print("  - ERROR: Device not found.")
-            return False
+            continue
         
         # Execute tgtadm to create a target
         print("  - Creating target {}...".format(targetname))
@@ -305,7 +320,7 @@ def spectr3_start(port, permitip, bindip, devices, daemon, chapuser, chappass, t
         target_created = os.system(f"sudo {tgtadm_path} --lld iscsi --op show --mode target | grep {targetname} > /dev/null")
         if target_created != 0:
             print("    + ERROR: Failed to create target.")
-            return False
+            continue
         
         # Add a device to the target
         print("    + Adding device to target...")
@@ -316,7 +331,7 @@ def spectr3_start(port, permitip, bindip, devices, daemon, chapuser, chappass, t
         device_added = os.system(f"sudo {tgtadm_path} --lld iscsi --op show --mode target | grep {devicepath} > /dev/null")
         if device_added != 0:
             print("    + ERROR: Failed to add device to target.")
-            return False
+            continue
     
         # Accept connections only from localhost not for permitip
         print("    + Setting target ACL...")
@@ -328,22 +343,16 @@ def spectr3_start(port, permitip, bindip, devices, daemon, chapuser, chappass, t
         tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "update", "--mode", "logicalunit",
                                 "--tid", str(tid), "--lun", "1", "--params", "readonly=1,vendor_id={},product_id={}".format(vendor, model)])
         time.sleep(1)
+
+        # Set CHAP authentication.
+        if chapuser:
+            print("    + Setting CHAP...")
+            tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "bind", "--mode", "account", "--tid", str(tid), "--user", chapuser])
+            time.sleep(1)
+
         tid += 1
 
-    # Set CHAP authentication.
-    if chapuser:
-        print("    + Setting CHAP authentication...")
-        if not chappass:
-            chappass = getpass.getpass("      - Enter CHAP password: ")
-
-        if chappass:
-            # Create CHAP user
-            tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "new", "--mode", "account", "--user", chapuser, "--password", chappass])
-            time.sleep(1)
-            # Add CHAP user to target
-            tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "bind", "--mode", "account", "--tid", "1", "--user", chapuser])
-            time.sleep(1)
-
+    # Run SPECTR3
     if len(devices) > 1:
         targetname = "Multi-Targets"
 
