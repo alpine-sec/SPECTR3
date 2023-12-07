@@ -62,7 +62,7 @@ namespace SPECTR3
 
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.7 - Remote acquisition and forensic tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.7.3 - Remote acquisition and forensic tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
@@ -378,7 +378,7 @@ namespace SPECTR3
 
             string drivename = String.Empty;
             //Initialize m_disk with the selected volume or disk
-            txtTargetIQN = String.Format("Muti-Targets");
+            txtTargetIQN = String.Format("Multi-Targets");
             if (shareall)
             {
                 int dskindex = 0;

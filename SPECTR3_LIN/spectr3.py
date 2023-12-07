@@ -42,7 +42,7 @@ from blkinfo import BlkDiskInfo
 
 
 
-VERSION="0.2"
+VERSION="0.3"
 INSTALL_PATH = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -80,6 +80,11 @@ def get_args():
                             required=False,
                             action='store',
                             help='Set device to share. Ex: -d sda1 (without /dev/)')
+
+    argparser.add_argument('-a', '--shareall',
+                            required=False,
+                            action='store_true',
+                            help='Share all block devices')
     
     argparser.add_argument('--chapuser',
                             required=False,
@@ -153,6 +158,38 @@ def list_devices():
                 fstype = ""
             size = sizeof_fmt(volume[1])
             print (f"    + {volume[0]}:\t{fstype}\t{mountpoint}\t{size}".format(size=size))
+
+def get_all_block_devices():
+    devices = []
+    # Read block device information using blkinfo
+    blkd = BlkDiskInfo()
+    disks = blkd.get_disks()
+    all_devices = []
+    
+    # List Physical Disks
+    for disk in disks:
+        all_devices.append(disk['name'])
+
+    # List Volumes
+    for disk in disks:
+        if disk['children']:
+            for volume in disk['children']:
+                all_devices.append(volume['name'])
+
+    # List LVM Volumes
+    lvm_volumes = os.popen("sudo lvs --units b --nosuffix --options lv_name,lv_size,lv_path,vg_name").read()
+    if lvm_volumes:
+        lvm_volumes = lvm_volumes.split("\n")
+    for volume in lvm_volumes:
+        # Skip first line
+        if "LV" in volume:
+            continue
+        if volume:
+            volume = volume.split(" ")
+            volume = list(filter(None, volume))
+            all_devices.append(volume[0])
+
+    return all_devices
 
 def locate_block_device(device_name):
     for root, dirs, files in os.walk('/dev'):
@@ -243,52 +280,55 @@ def stop_tgt_server(tgtdpid):
     print("    + TGTD stopped successfully.")
     print()
 
-def spectr3_start(port, permitip, bindip, device, daemon, chapuser, chappass, tgtdpid):
+def spectr3_start(port, permitip, bindip, devices, daemon, chapuser, chappass, tgtdpid):
     # Configure targets
+    tid = 1
     hostname = get_hostname()
-    targetname = "iqn.2023-05.io.alpine.{hostname}:{device}".format(hostname=hostname, device=device)
-    vendor = "AlpineSec"
-    model = "SPECTR3 iSCSI"
-
-    # Create a target
-    devicepath = locate_block_device(device)
-    if not devicepath:
-        print("  - ERROR: Device not found.")
-        return False
-
     tgtadm_path = os.path.join(INSTALL_PATH, "tgtadm")
-    
-    # Execute tgtadm to create a target
-    print("  - Creating target...")
-    tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "new", "--mode", "target", "--tid", "1", "-T", targetname])
-    time.sleep(1)
-    # Check if target was created
-    target_created = os.system(f"sudo {tgtadm_path} --lld iscsi --op show --mode target | grep {targetname} > /dev/null")
-    if target_created != 0:
-        print("    + ERROR: Failed to create target.")
-        return False
-    
-    # Add a device to the target
-    print("    + Adding device to target...")
-    tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "new", "--mode", "logicalunit",
-                               "--tid", "1", "--lun", "1", "-b", devicepath])
-    time.sleep(1)
-    # Check if device was added
-    device_added = os.system(f"sudo {tgtadm_path} --lld iscsi --op show --mode target | grep {devicepath} > /dev/null")
-    if device_added != 0:
-        print("    + ERROR: Failed to add device to target.")
-        return False
-    
-    # Accept connections only from localhost not for permitip
-    print("    + Setting target ACL...")
-    tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "bind", "--mode", "target", "--tid", "1", "-I", permitip])
-    time.sleep(1)
 
-    # Set readonly: sudo tgtadm --lld iscsi --op update --mode logicalunit --tid 1 --lun 1 --params readonly=yes
-    print("    + Setting target readonly...")
-    tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "update", "--mode", "logicalunit",
-                               "--tid", "1", "--lun", "1", "--params", "readonly=1,vendor_id={},product_id={}".format(vendor, model)])
-    time.sleep(1)
+    for device in devices:
+        targetname = "iqn.2023-05.io.alpine.{hostname}:{device}".format(hostname=hostname, device=device)
+        vendor = "SPECTR3"
+        model = "iSCSI {}".format(device)
+
+        # Create a target
+        devicepath = locate_block_device(device)
+        if not devicepath:
+            print("  - ERROR: Device not found.")
+            return False
+        
+        # Execute tgtadm to create a target
+        print("  - Creating target {}...".format(targetname))
+        tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "new", "--mode", "target", "--tid", str(tid), "-T", targetname])
+        time.sleep(1)
+        # Check if target was created
+        target_created = os.system(f"sudo {tgtadm_path} --lld iscsi --op show --mode target | grep {targetname} > /dev/null")
+        if target_created != 0:
+            print("    + ERROR: Failed to create target.")
+            return False
+        
+        # Add a device to the target
+        print("    + Adding device to target...")
+        tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "new", "--mode", "logicalunit",
+                                "--tid", str(tid), "--lun", "1", "-b", devicepath])
+        time.sleep(1)
+        # Check if device was added
+        device_added = os.system(f"sudo {tgtadm_path} --lld iscsi --op show --mode target | grep {devicepath} > /dev/null")
+        if device_added != 0:
+            print("    + ERROR: Failed to add device to target.")
+            return False
+    
+        # Accept connections only from localhost not for permitip
+        print("    + Setting target ACL...")
+        tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "bind", "--mode", "target", "--tid", str(tid), "-I", permitip])
+        time.sleep(1)
+
+        # Set readonly: sudo tgtadm --lld iscsi --op update --mode logicalunit --tid 1 --lun 1 --params readonly=yes
+        print("    + Setting target readonly...")
+        tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "update", "--mode", "logicalunit",
+                                "--tid", str(tid), "--lun", "1", "--params", "readonly=1,vendor_id={},product_id={}".format(vendor, model)])
+        time.sleep(1)
+        tid += 1
 
     # Set CHAP authentication.
     if chapuser:
@@ -303,6 +343,9 @@ def spectr3_start(port, permitip, bindip, device, daemon, chapuser, chappass, tg
             # Add CHAP user to target
             tgtadm = subprocess.Popen(["sudo", tgtadm_path, "--lld", "iscsi", "--op", "bind", "--mode", "account", "--tid", "1", "--user", chapuser])
             time.sleep(1)
+
+    if len(devices) > 1:
+        targetname = "Multi-Targets"
 
     connected_ips = []
     print()
@@ -373,6 +416,7 @@ def main():
     permitip = args.permitip
     bindip = args.bindip
     device = args.device
+    shareall = args.shareall
     daemon = args.daemon
     chapuser = args.chapuser
     chappass = args.chappass
@@ -398,11 +442,16 @@ def main():
     if not bindip:
         bindip = get_main_ip_address()
     
-    if not device:
+    if not device and not shareall:
         print("  - ERROR: You must specify a device to share.")
         # Print help
-        print(argparser.print_help())
+        argparser.print_help()
         return 1
+    
+    if shareall:
+        devices = get_all_block_devices()
+    else:
+        devices = [device]
 
     if chapuser and chappass:
         #decode base64 chappass
@@ -419,7 +468,7 @@ def main():
         return 1
 
     # Run SPECTR3
-    spectr3_start(port, permitip, bindip, device, daemon, chapuser, chappass, tgtdpid)
+    spectr3_start(port, permitip, bindip, devices, daemon, chapuser, chappass, tgtdpid)
     return 0
 
 if __name__ == '__main__':
