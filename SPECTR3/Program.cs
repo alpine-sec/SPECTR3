@@ -62,7 +62,7 @@ namespace SPECTR3
 
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.7.3 - Remote acquisition and forensic tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.7.4 - Remote acquisition and forensic tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
@@ -259,9 +259,9 @@ namespace SPECTR3
                         return 1;
                     }
 
-                    if (!SP3NET.ValidateIPv4(args[i + 1]))
+                    if (!SP3NET.ValidateIPv4(args[i + 1]) && !SP3NET.ValidateDNS(args[i + 1]))
                     {
-                        Console.WriteLine("  - ERROR: Invalid SSH IP address");
+                        Console.WriteLine("  - ERROR: Invalid SSH IP address or Hostname");
                         return 1;
                     }
                     sshhost = args[i + 1];

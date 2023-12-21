@@ -395,5 +395,21 @@ namespace SPECTR3
             return ip != null && ip.Count(c => c == '.') == 3 &&
                 IPAddress.TryParse(ip, out address);
         }
+
+        // Check if a dns like "shaw.alpinesec.cloud" is valid
+        public static bool ValidateDNS(string dns)
+        {
+            bool isValid = false;
+            try
+            {
+                IPHostEntry host = Dns.GetHostEntry(dns);
+                isValid = true;
+            }
+            catch (Exception)
+            {
+                isValid = false;
+            }
+            return isValid;
+        }
     }
 }
