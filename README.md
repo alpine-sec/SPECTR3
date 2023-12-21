@@ -44,7 +44,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This project is based on the great work done by TalAloni with iSCSI Console but with a forensic objective more similar to F-Response in its approach to remote acquisition, analysis and triage.
+This project is based on the great work done by TalAloni with iSCSI Console (windows version) and Fujita with TGT project (linux version) but with a forensic objective more similar to F-Response in its approach to remote acquisition, analysis and triage.
 
 The goal is to make available to the community a command line, open source and easy to use tool for scenarios where a complete forensic acquisition or a fast remote analysis is needed.
 
@@ -58,7 +58,7 @@ Copy portable executable of **SPECTR3** to the endpoint where you want to perfor
 
 ### Command Line Options
 ```
-SPECTR3 v0.6 - Remote acquisition and forensic tool by Alpine Security
+SPECTR3 v0.7 - Remote acquisition and forensic tool by Alpine Security
 Usage: SPECTR3.exe [options]
 Options:
   -l, --list
@@ -73,6 +73,8 @@ Options:
     Set the volume to share.
   -d, --disk
     Set the disk to share.
+  -a, --shareall
+    Share all disks.
   -t, --timeout
     Stop the service if the configured number of MINUTES without activity elapses. Ex. -t 60 (60 min)
   -h, --help
@@ -281,13 +283,12 @@ admuser@lindev:~$ sudo iscsiadm -m discovery -t sendtargets -p localhost:3262
 4. Connect target as usual.
 
 ### SPECTR3 for Linux
-[**DOWNLOAD EXECUTABLE**](https://github.com/alpine-sec/SPECTR3/releases/tag/v0.7.2)
 SPECTR3 for linux works as a wrapper for the https://github.com/fujita/tgt project and uses the tgtd and tgtadmin binaries. Both binaries are embedded in the portable version.
 ```
-usage: spectr3 [-h] [-V] [-l] [-p PORT] [-i PERMITIP] [-b BINDIP] [-d DEVICE] [--chapuser CHAPUSER]
-               [--chappass CHAPPASS] [--daemon]
+usage: spectr3 [-h] [-V] [-l] [-p PORT] [-i PERMITIP] [-b BINDIP] [-d DEVICE] [-a]
+               [--chapuser CHAPUSER] [--chappass CHAPPASS] [--daemon]
 
-SPECTR3 Linux v0.2 - Remote acquisition and forensic tool by Alpine Security
+SPECTR3 Linux v0.3 - Remote acquisition and forensic tool by Alpine Security
 
 options:
   -h, --help            show this help message and exit
@@ -300,6 +301,7 @@ options:
                         Set the bind ip to listen.
   -d DEVICE, --device DEVICE
                         Set device to share. Ex: -d sda1 (without /dev/)
+  -a, --shareall        Share all block devices
   --chapuser CHAPUSER   Set CHAP username. Ex: --chapuser admin
   --chappass CHAPPASS   Set CHAP password in BASE64 with minimal password size of 12. Ex: --chappass
                         QWxwaW5lU2VjdXJpdHk=
@@ -357,7 +359,7 @@ pyinstaller --onefile spectr3.py --add-binary tgtd:. --add-binary tgtadm:.
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Add option to share all drives in different targets
+- [X] Add option to share all drives in different targets
 - [ ] Add option to install as a service
 - [X] Add option to run as daemon in background
 - [X] Tunnelized and encrypted connections
