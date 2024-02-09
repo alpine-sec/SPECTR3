@@ -34,8 +34,9 @@
         <li><a href="#SPECTR3-for-Linux">SPECTR3 for Linux</a></li>
       </ul>
     </li>
+    <li><a href="#examples">Video Examples</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#Acknowledgments">Acknowledgments</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
     <li><a href="#scenarios">Scenarios</a></li>
   </ol>
 </details>
@@ -348,13 +349,21 @@ sudo pip3 install -r requirements.txt
 pyinstaller --onefile spectr3.py --add-binary tgtd:. --add-binary tgtadm:.
 ```
 
+<!-- EXAMPLES -->
+## Examples
+
+### Fast EVTX triage with SPECTR3, Hayabusa and Timesketch
+
+[![Watch the video](https://img.youtube.com/vi/E2nB-voOwRk/hqdefault.jpg)](https://youtu.be/E2nB-voOwRk)
+
+ ### Remote Acquisition of Windows Server Core with SPECTR3
+
+[![Watch the video](https://img.youtube.com/vi/_6UjkySK3yc/hqdefault.jpg)](https://youtu.be/_6UjkySK3yc)
 
 <!-- SCENARIOS -->
 ## Scenarios
 
 ![SPECTR3-Basic](https://github.com/alpine-sec/SPECTR3/assets/143736/406037df-7b52-4f67-9e7b-98f4921a7f01)
-
-
 
 <!-- ROADMAP -->
 ## Roadmap
@@ -366,8 +375,6 @@ pyinstaller --onefile spectr3.py --add-binary tgtd:. --add-binary tgtadm:.
 - [X] Linux Version
 - [ ] Multiplatform easy client
 - [ ] Others cool things...
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
