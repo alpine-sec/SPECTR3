@@ -22,7 +22,6 @@ using ISCSI.Server;
 using System.Threading;
 using System.Diagnostics;
 using static SPECTR3.SP3DSK;
-using DiskAccessLibrary;
 using System.Reflection;
 
 namespace SPECTR3
@@ -62,7 +61,7 @@ namespace SPECTR3
 
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.7.4 - Remote acquisition and forensic tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.7.5 - Remote acquisition and forensic tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
@@ -431,7 +430,7 @@ namespace SPECTR3
                 Console.WriteLine("  - Funny MOTD: " + SP3UTILS.GetRandomMessage());
             }
 
-            //Daemon mode
+            // Daemon mode
             if (daemon)
             {
                 string argsString = string.Join(" ", args);
@@ -439,21 +438,28 @@ namespace SPECTR3
                 {
                     argsString = argsString.Replace("--daemon", "");
                 }
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.FileName = "SPECTR3.exe";
-                startInfo.Arguments = argsString;
-                startInfo.CreateNoWindow = true;
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.RedirectStandardOutput = true;
-                startInfo.UseShellExecute = false;
+
+                string executablePath = Assembly.GetExecutingAssembly().Location;
+                string executableName = System.IO.Path.GetFileName(executablePath);
+
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = executableName,
+                    Arguments = argsString,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false
+                };
+
                 Process process = Process.Start(startInfo);
-                //Get PID of the background process
+                // Get PID of the background process
                 pid = process.Id;
 
-                //Print Server Info
+                // Print Server Info
                 Console.WriteLine();
                 Console.WriteLine("  - SPECTR3 Server running in background PID (" + pid + ") at "
-                                       + serverAddress + ":" + port);
+                                   + serverAddress + ":" + port);
                 Console.WriteLine("    + Target IQN: " + txtTargetIQN);
                 Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
                 return 0;
