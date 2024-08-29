@@ -59,7 +59,7 @@ Copy portable executable of **SPECTR3** to the endpoint where you want to perfor
 
 ### Command Line Options
 ```
-SPECTR3 v0.7 - Remote acquisition and forensic tool by Alpine Security
+SPECTR3 v0.7.5 - Remote acquisition and forensic tool by Alpine Security
 Usage: SPECTR3.exe [options]
 Options:
   -l, --list
