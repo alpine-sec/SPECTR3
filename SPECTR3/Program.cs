@@ -92,6 +92,8 @@ namespace SPECTR3
             Console.WriteLine("    Set the ssh port to connect. Default: 22");
             Console.WriteLine("  --daemon");
             Console.WriteLine("    Run SPECTR3 as background unattended process. NOTE: Manually kill by PID needed.");
+            Console.WriteLine("  -non-interactive");
+            Console.WriteLine("    Run SPECTR3 in non-interactive mode. Usually internally by daemon mode.");
         }
 
         static int Main(string[] args)
@@ -100,6 +102,7 @@ namespace SPECTR3
             bool thisegg = false;
             bool daemon = false;
             bool shareall = false;
+            bool noninteractive = false;
 
             string thisip = string.Empty;
             string thisbind = string.Empty;
@@ -122,7 +125,7 @@ namespace SPECTR3
             List<string> validargs = new List<string>()
                  { "--list", "--port", "--permitip", "--bindip", "--volume", "--disk", "--help", "--sshuser",
                    "--sshpass", "--sshhost", "--sshport", "--daemon", "--timeout", "--shareall", "-l", "-p",
-                   "-i", "-b", "-h", "-v", "-d", "-a", "-o", "-t"};
+                   "-i", "-b", "-h", "-v", "-d", "-a", "-o", "-t", "--non-interactive"};
 
             if (!SP3UTILS.SecurityHelper.IsAdministrator())
             {
@@ -225,6 +228,11 @@ namespace SPECTR3
                     shareall = true;
                 }
 
+                if (arg == "--non-interactive")
+                {
+                    noninteractive = true;
+                }
+
                 if (arg == "-o")
                 {
                     thisegg = true;
@@ -316,6 +324,7 @@ namespace SPECTR3
                     }
                 }
             }
+
 
             if ((string.IsNullOrEmpty(thisvolume) && string.IsNullOrEmpty(thisdisk)) && !list && !shareall)
             {
@@ -436,7 +445,7 @@ namespace SPECTR3
                 string argsString = string.Join(" ", args);
                 if (argsString.Contains("--daemon"))
                 {
-                    argsString = argsString.Replace("--daemon", "");
+                    argsString = argsString.Replace("--daemon", "--non-interactive");
                 }
 
                 string executablePath = Assembly.GetExecutingAssembly().Location;
@@ -491,28 +500,49 @@ namespace SPECTR3
                 return 1;
             }
 
-            //Wait until user press enter
-            Console.WriteLine("  - Press ENTER key to stop sharing and close server ...  ");
-            while (true)
+            if (noninteractive)
             {
-                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
+                // Run the server without waiting for user input
+                Console.WriteLine("  - Running in non-interactive mode. Use system commands to stop the server.");
+                while (true)
                 {
-                    sp3Server.StopServer();
-                    return 0;
+                    //if timeout is set, subtract 2 seconds to ISCSIServer.toglobal
+                    if (ISCSIServer.toswitch)
+                    {
+                        if (ISCSIServer.toglobal <= 0)
+                        {
+                            sp3Server.StopServer();
+                            return 0;
+                        }
+                        ISCSIServer.toglobal -= 2;
+                    }
+                    Thread.Sleep(2000);
                 }
-                //if timeout is set, subtract 2 seconds to ISCSIServer.toglobal
-                if (ISCSIServer.toswitch)
+            }
+            else
+            {
+                // Wait until user presses enter or timeout occurs
+                Console.WriteLine("  - Press ENTER key to stop sharing and close server...");
+                while (true)
                 {
-                    if (ISCSIServer.toglobal == 0)
+                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
                     {
                         sp3Server.StopServer();
                         return 0;
                     }
-                    ISCSIServer.toglobal -= 2;
+                    //if timeout is set, subtract 2 seconds to ISCSIServer.toglobal
+                    if (ISCSIServer.toswitch)
+                    {
+                        if (ISCSIServer.toglobal <= 0)
+                        {
+                            sp3Server.StopServer();
+                            return 0;
+                        }
+                        ISCSIServer.toglobal -= 2;
+                    }
+                    Thread.Sleep(2000);
                 }
-                Thread.Sleep(2000);
             }
-            
         }
     }
 }
