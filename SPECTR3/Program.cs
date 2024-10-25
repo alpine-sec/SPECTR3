@@ -61,7 +61,7 @@ namespace SPECTR3
 
         private static void PrintHelp()
         {
-            Console.WriteLine("SPECTR3 v0.7.5 - Remote acquisition and forensic tool by Alpine Security");
+            Console.WriteLine("SPECTR3 v0.7.7 - Remote acquisition and forensic tool by Alpine Security");
             Console.WriteLine("Usage: SPECTR3.exe [options]");
             Console.WriteLine("Options:");
             Console.WriteLine("  -l, --list");
@@ -471,6 +471,8 @@ namespace SPECTR3
                                    + serverAddress + ":" + port);
                 Console.WriteLine("    + Target IQN: " + txtTargetIQN);
                 Console.WriteLine("    + Access Permited from: " + permitedAddress.ToString());
+                Console.Out.Flush(); // Ensure the output is flushed immediately
+
                 return 0;
             }
 
